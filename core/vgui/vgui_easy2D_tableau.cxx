@@ -1,4 +1,4 @@
-// This is oxl/vgui/vgui_easy2D.cxx
+// This is oxl/vgui/vgui_easy2D_tableau.cxx
 #ifdef VCL_NEEDS_PRAGMA_INTERFACE
 #pragma implementation
 #endif
@@ -6,14 +6,14 @@
 // \file
 // \author Philip C. Pritchett, RRG, University of Oxford
 // \date   24 Sep 99
-// \brief  See vgui_easy2D.h for a description of this file.
+// \brief  See vgui_easy2D_tableau.h for a description of this file.
 //
 // \verbatim
 //  Modifications:
 //    24-SEP-1999 P.Pritchett - Initial version.
 // \endverbatim
 
-#include "vgui_easy2D.h"
+#include "vgui_easy2D_tableau.h"
 
 #include <vcl_vector.h>
 #include <vcl_cassert.h>
@@ -26,14 +26,14 @@
 #include <vgui/vgui_event.h>
 #include <vgui/vgui_macro.h>
 #include <vgui/vgui_soview2D.h>
-#include <vgui/vgui_displaylist2D.h>
+#include <vgui/vgui_displaylist2D_tableau.h>
 #include <vgui/vgui_image_tableau.h>
 #include <vgui/vgui_style_factory.h>
 #include <vgui/vgui_style.h>
 
 static bool debug = false;
 
-vgui_easy2D::vgui_easy2D(const char* n):
+vgui_easy2D_tableau::vgui_easy2D_tableau(const char* n):
   image_slot(this),
   name_(n)
 {
@@ -46,7 +46,7 @@ vgui_easy2D::vgui_easy2D(const char* n):
 }
 
 
-vgui_easy2D::vgui_easy2D(vgui_image_tableau_sptr const& i, const char* n) :
+vgui_easy2D_tableau::vgui_easy2D_tableau(vgui_image_tableau_sptr const& i, const char* n) :
   image_slot(this,i),
   image_image(i),
   name_(n)
@@ -60,7 +60,7 @@ vgui_easy2D::vgui_easy2D(vgui_image_tableau_sptr const& i, const char* n) :
 }
 
 
-vgui_easy2D::vgui_easy2D(vgui_tableau_sptr const& i, const char* n) :
+vgui_easy2D_tableau::vgui_easy2D_tableau(vgui_tableau_sptr const& i, const char* n) :
   image_slot(this,i),
   name_(n)
 {
@@ -73,7 +73,7 @@ vgui_easy2D::vgui_easy2D(vgui_tableau_sptr const& i, const char* n) :
 }
 
 
-bool vgui_easy2D::handle(vgui_event const& e) {
+bool vgui_easy2D_tableau::handle(vgui_event const& e) {
   if (image_slot) {
     if (e.type == vgui_DRAW && gl_mode == GL_SELECT) {
       // do nothing
@@ -83,10 +83,10 @@ bool vgui_easy2D::handle(vgui_event const& e) {
     }
   }
 
-  return vgui_displaylist2D::handle(e);
+  return vgui_displaylist2D_tableau::handle(e);
 }
 
-vcl_string vgui_easy2D::file_name() const {
+vcl_string vgui_easy2D_tableau::file_name() const {
   if (image_slot)
     return type_name() + "[" + name_ + ",i=" + image_slot->file_name() + "]";
   else
@@ -94,25 +94,25 @@ vcl_string vgui_easy2D::file_name() const {
 }
 
 
-vcl_string vgui_easy2D::pretty_name() const {
+vcl_string vgui_easy2D_tableau::pretty_name() const {
   if (image_slot)
     return type_name() + "[" + name_ + ",i=" + image_slot->file_name() + "]";
   else
     return type_name() + "[" + name_ + ",i=null]";
 }
 
-vcl_string vgui_easy2D::type_name() const {
-  return "vgui_easy2D";
+vcl_string vgui_easy2D_tableau::type_name() const {
+  return "vgui_easy2D_tableau";
 }
 
 //: Set the child tableau to be the given image_tableau.
-void vgui_easy2D::set_image(vcl_string const& fn)
+void vgui_easy2D_tableau::set_image(vcl_string const& fn)
 {
   image_image->set_image(fn.c_str());
 }
 
 //: Set the child tableau to be the given tableau.
-void vgui_easy2D::set_child(vgui_tableau_sptr const& i) {
+void vgui_easy2D_tableau::set_child(vgui_tableau_sptr const& i) {
   if (i->type_name() != "vgui_image_tableau" &&
       i->type_name() != "xcv_image_tableau")
     vgui_macro_warning << "assigning what seems like a non-image to my child : i = " << i << vcl_endl;
@@ -120,16 +120,16 @@ void vgui_easy2D::set_child(vgui_tableau_sptr const& i) {
 }
 
 //: Add the given two-dimensional object to the display.
-void vgui_easy2D::add(vgui_soview2D* object) {
+void vgui_easy2D_tableau::add(vgui_soview2D* object) {
 
   vgui_style *style = vgui_style_factory::instance()->get_style(fg[0], fg[1], fg[2], point_size, line_width);
   object->set_style(style);
 
-  vgui_displaylist2D::add(object);
+  vgui_displaylist2D_tableau::add(object);
 }
 
 //: Add a point at the given position to the display.
-vgui_soview2D_point* vgui_easy2D::add_point(float x, float y)
+vgui_soview2D_point* vgui_easy2D_tableau::add_point(float x, float y)
 {
   vgui_soview2D_point *obj = new vgui_soview2D_point;
 
@@ -141,7 +141,7 @@ vgui_soview2D_point* vgui_easy2D::add_point(float x, float y)
 
 //: Add a finite line with the given start and end points to the display.
 //  Note that this will be added as a vgui_lineseg (not vgui_line - which doesn't exist).
-vgui_soview2D_lineseg* vgui_easy2D::add_line(float x0, float y0, float x1, float y1) {
+vgui_soview2D_lineseg* vgui_easy2D_tableau::add_line(float x0, float y0, float x1, float y1) {
   vgui_soview2D_lineseg *obj = new vgui_soview2D_lineseg;
 
   obj->x0 = x0;
@@ -154,7 +154,7 @@ vgui_soview2D_lineseg* vgui_easy2D::add_line(float x0, float y0, float x1, float
 }
 
 //: Add an infinite line (ax + by +c = 0) to the display.
-vgui_soview2D_infinite_line* vgui_easy2D::add_infinite_line(float a, float b, float c) {
+vgui_soview2D_infinite_line* vgui_easy2D_tableau::add_infinite_line(float a, float b, float c) {
   vgui_soview2D_infinite_line *obj = new vgui_soview2D_infinite_line;
 
   obj->a = a;
@@ -166,7 +166,7 @@ vgui_soview2D_infinite_line* vgui_easy2D::add_infinite_line(float a, float b, fl
 }
 
 //: Add a circle with the given centre and radius to the display.
-vgui_soview2D_circle* vgui_easy2D::add_circle(float x, float y, float r) {
+vgui_soview2D_circle* vgui_easy2D_tableau::add_circle(float x, float y, float r) {
   vgui_soview2D_circle *obj = new vgui_soview2D_circle;
 
   obj->x = x;
@@ -177,7 +177,7 @@ vgui_soview2D_circle* vgui_easy2D::add_circle(float x, float y, float r) {
   return obj;
 }
 
-vgui_soview2D_ellipse* vgui_easy2D::add_ellipse(float x, float y, float w, float h, float phi){
+vgui_soview2D_ellipse* vgui_easy2D_tableau::add_ellipse(float x, float y, float w, float h, float phi){
   vgui_soview2D_ellipse *obj = new vgui_soview2D_ellipse;
 
   obj->x = x;
@@ -191,28 +191,28 @@ vgui_soview2D_ellipse* vgui_easy2D::add_ellipse(float x, float y, float w, float
 }
 
 //: Add a point with the given projective coordinates.
-vgui_soview2D_point* vgui_easy2D::add_point_3dv(double const p[3]) {
+vgui_soview2D_point* vgui_easy2D_tableau::add_point_3dv(double const p[3]) {
   return add_point(p[0]/p[2], p[1]/p[2]);
 }
 
 //: Add a line with the given projective start and end points.
-vgui_soview2D_lineseg* vgui_easy2D::add_line_3dv_3dv(double const p[3], double const q[3]) {
+vgui_soview2D_lineseg* vgui_easy2D_tableau::add_line_3dv_3dv(double const p[3], double const q[3]) {
   return add_line(p[0]/p[2], p[1]/p[2],
                   q[0]/q[2], q[1]/q[2]);
 }
 
 //: Add an infinite line with the given projective coordinates.
-vgui_soview2D_infinite_line* vgui_easy2D::add_infinite_line_3dv(double const l[3]) {
+vgui_soview2D_infinite_line* vgui_easy2D_tableau::add_infinite_line_3dv(double const l[3]) {
   return add_infinite_line(l[0], l[1], l[2]);
 }
 
 //: Add a circle with the given centre (in projective coords) and radius to the display.
-vgui_soview2D_circle* vgui_easy2D::add_circle_3dv(double const point[3], float r) {
+vgui_soview2D_circle* vgui_easy2D_tableau::add_circle_3dv(double const point[3], float r) {
   return add_circle(point[0]/point[2], point[1]/point[2], r);
 }
 
 //: Add a linestrip with the given n vertices to the display.
-vgui_soview2D_linestrip* vgui_easy2D::add_linestrip(unsigned n, float const *x, float const *y) {
+vgui_soview2D_linestrip* vgui_easy2D_tableau::add_linestrip(unsigned n, float const *x, float const *y) {
   vgui_soview2D_linestrip *obj = new vgui_soview2D_linestrip(n, x, y);
 
   add(obj);
@@ -220,7 +220,7 @@ vgui_soview2D_linestrip* vgui_easy2D::add_linestrip(unsigned n, float const *x, 
 }
 
 //: Add  polygon with the given n vertices to the display.
-vgui_soview2D_polygon* vgui_easy2D::add_polygon(unsigned n, float const *x, float const *y) {
+vgui_soview2D_polygon* vgui_easy2D_tableau::add_polygon(unsigned n, float const *x, float const *y) {
   vgui_soview2D_polygon *obj = new vgui_soview2D_polygon(n, x, y);
 
   add(obj);
@@ -231,7 +231,7 @@ vgui_soview2D_polygon* vgui_easy2D::add_polygon(unsigned n, float const *x, floa
 //  Specify the optional arguments in case this tableau does not contain
 //  an image tableau, or if you want a smaller part of the image printed.
 //  If wd or ht are 0, no image is printed at all.
-void vgui_easy2D::print_psfile(vcl_string filename, int reduction_factor, bool print_geom_objs, int wd, int ht)
+void vgui_easy2D_tableau::print_psfile(vcl_string filename, int reduction_factor, bool print_geom_objs, int wd, int ht)
 {
   // Set wd and ht from the image tableau, if not specified as parameters
   if (wd < 0 || ht < 0)
@@ -260,14 +260,14 @@ void vgui_easy2D::print_psfile(vcl_string filename, int reduction_factor, bool p
     if (vil_pixel_format(img) == VIL_BYTE)
     {
       if (debug)
-        vcl_cerr << "vgui_easy2D::print_psfile printing greyscale image to"
+        vcl_cerr << "vgui_easy2D_tableau::print_psfile printing greyscale image to"
                  << filename.c_str() << vcl_endl;
       psfile.print_greyscale_image(data, wd, ht);
     }
     else if (vil_pixel_format(img) == VIL_RGB_BYTE)
     {
       if (debug)
-        vcl_cerr << "vgui_easy2D::print_psfile printing color image to "
+        vcl_cerr << "vgui_easy2D_tableau::print_psfile printing color image to "
                  << filename.c_str() << vcl_endl;
       psfile.print_color_image(data, wd, ht);
     }
@@ -281,7 +281,7 @@ void vgui_easy2D::print_psfile(vcl_string filename, int reduction_factor, bool p
   // Skip the rest of this function if no geometry is wanted
   if (!print_geom_objs) return;
   if (debug)
-    vcl_cerr << "vgui_easy2D: Printing geometric objects\n";
+    vcl_cerr << "vgui_easy2D_tableau: Printing geometric objects\n";
 
   vcl_vector<vgui_soview*> all_objs = get_all();
   vgui_style* style = 0;
@@ -309,7 +309,7 @@ void vgui_easy2D::print_psfile(vcl_string filename, int reduction_factor, bool p
       vgui_soview2D_point* pt = (vgui_soview2D_point*)sv;
       psfile.point(pt->x, pt->y, style_point_size);
       if (debug)
-        vcl_cerr << "  vgui_easy2D: Adding a point at "
+        vcl_cerr << "  vgui_easy2D_tableau: Adding a point at "
                  << pt->x << ", " << pt->y << vcl_endl;
     }
 
@@ -318,7 +318,7 @@ void vgui_easy2D::print_psfile(vcl_string filename, int reduction_factor, bool p
       vgui_soview2D_circle* circ = (vgui_soview2D_circle*)sv;
       psfile.circle(circ->x, circ->y, circ->r);
       if (debug)
-        vcl_cerr << "  vgui_easy2D: Adding circle, center " << circ->x << ", "
+        vcl_cerr << "  vgui_easy2D_tableau: Adding circle, center " << circ->x << ", "
                  << circ->y << " radius " << circ->r << vcl_endl;
     }
     else if (sv->type_name() == "vgui_soview2D_lineseg")
@@ -326,7 +326,7 @@ void vgui_easy2D::print_psfile(vcl_string filename, int reduction_factor, bool p
       vgui_soview2D_lineseg* line = (vgui_soview2D_lineseg*)sv;
       psfile.line(line->x0, line->y0, line->x1, line->y1);
       if (debug)
-        vcl_cerr << " vgui_easy2D: Adding line between " << line->x0 << ", "
+        vcl_cerr << " vgui_easy2D_tableau: Adding line between " << line->x0 << ", "
                  << line->y0 << " and " << line->x1 << ", " << line->y1 << vcl_endl;
     }
     else if (sv->type_name() == "vgui_soview2D_linestrip")
@@ -336,7 +336,7 @@ void vgui_easy2D::print_psfile(vcl_string filename, int reduction_factor, bool p
         psfile.line(linestrip->x[ii-1],linestrip->y[ii-1],
                     linestrip->x[ii  ],linestrip->y[ii  ]);
       if (debug)
-        vcl_cerr<< " vgui_easy2D: Adding linestrip \n";
+        vcl_cerr<< " vgui_easy2D_tableau: Adding linestrip \n";
     }
     else if (sv->type_name() == "vgui_soview2D_polygon")
     {
@@ -348,7 +348,7 @@ void vgui_easy2D::print_psfile(vcl_string filename, int reduction_factor, bool p
                   polygon->y[polygon->n - 1],
                   polygon->x[0], polygon->y[0]);
       if (debug)
-        vcl_cerr<< " vgui_easy2D: Adding polygon \n";
+        vcl_cerr<< " vgui_easy2D_tableau: Adding polygon \n";
     }
     else
       vgui_macro_warning << "unknown soview typename = " << sv->type_name() << vcl_endl;

@@ -1,6 +1,6 @@
-// This is oxl/vgui/vgui_easy2D.h
-#ifndef vgui_easy2D_h_
-#define vgui_easy2D_h_
+// This is oxl/vgui/vgui_easy2D_tableau.h
+#ifndef vgui_easy2D_tableau_h_
+#define vgui_easy2D_tableau_h_
 #ifdef VCL_NEEDS_PRAGMA_INTERFACE
 #pragma interface
 #endif
@@ -10,20 +10,23 @@
 // \date   24 Sep 1999
 // \brief  Tableau to display two-dimensional geometric objects.
 //
-//  Contains classes: vgui_easy2D  vgui_easy2D_new
+//  Contains classes: vgui_easy2D_tableau  vgui_easy2D_tableau_new
 //
 // \verbatim
 // Modifications
 //    24-SEP-1999  P.Pritchett - Initial version.
-//    20-JUL-2000  Marko Bacic, Oxford RRG -- Provided support for printing linestrips
-//    25-APR-2002  domi@vision.ee.ethz.ch - make print_psfile work without image tableau
+//    20-JUL-2000  Marko Bacic - Provided support for printing linestrips
+//    25-APR-2002  domi@vision.ee.ethz.ch - make print_psfile work without 
+//                                          image tableau
 //    26-APR-2002  K.Y.McGaul - Added some doxygen-style documentation.
+//    01-OCT-2002  K.Y.McGaul - Moved vgui_easy2D to vgui_easy2D_tableau.
+//                            - Added functions clear, remove, get_all.
 // \endverbatim
 
-#include <vgui/vgui_displaylist2D.h>
-#include <vgui/vgui_slot.h>
+#include <vgui/vgui_displaylist2D_tableau.h>
+#include <vgui/vgui_parent_child_link.h>
 #include <vgui/vgui_image_tableau.h>
-#include <vgui/vgui_easy2D_sptr.h>
+#include <vgui/vgui_easy2D_tableau_sptr.h>
 
 class vgui_soview2D;
 class vgui_soview2D_point;
@@ -48,26 +51,25 @@ class vgui_soview2D_polygon;
 //
 //  To remove objects call remove(vgui_soview*).  The vgui_soview* is returned 
 //  by add(), or you can get a list of all soviews using get_all().  To remove 
-//  all objects use clear().  These functions are inherited from 
-//  vgui_displaybase.
+//  all objects use clear().  
 //
 //  The geometric objects on the easy2D (and any underlying image) can be saved 
 //  as PostScript by calling print_psfile. (If you just wish to save an image 
 //  of your easy2D you may want to use vgui_utils::dump_colour_buffer instead).
-class vgui_easy2D : public vgui_displaylist2D
+class vgui_easy2D_tableau : public vgui_displaylist2D_tableau
 {
  public:
-  //: Constructor - don't use this, use vgui_easy2D_new.
+  //: Constructor - don't use this, use vgui_easy2D_tableau_new.
   //  Create an easy2D with the given name.
-  vgui_easy2D(const char* n="unnamed");
+  vgui_easy2D_tableau(const char* n="unnamed");
 
-  //: Constructor - don't use this, use vgui_easy2D_new.
+  //: Constructor - don't use this, use vgui_easy2D_tableau_new.
   //  Creates an easy2D with the given image tableau as child.
-  vgui_easy2D(vgui_image_tableau_sptr const&, const char* n="unnamed");
+  vgui_easy2D_tableau(vgui_image_tableau_sptr const&, const char* n="unnamed");
 
-  //: Constructor - don't use this, use vgui_easy2D_new.
+  //: Constructor - don't use this, use vgui_easy2D_tableau_new.
   //  Creates an easy2D with the given child tableau.
-  vgui_easy2D(vgui_tableau_sptr const&, const char* n="unnamed");
+  vgui_easy2D_tableau(vgui_tableau_sptr const&, const char* n="unnamed");
 
   //: Handle all events sent to this tableau.
   //  In particular, use draw events to draw 2-dimensional geometric objects.
@@ -82,7 +84,7 @@ class vgui_easy2D : public vgui_displaylist2D
   //: Returns a nice version of the type, including details of any image file.
   vcl_string pretty_name() const;
 
-  //: Returns the type of this tableau ('vgui_easy2D').
+  //: Returns the type of this tableau ('vgui_easy2D_tableau').
   vcl_string type_name() const;
 
   //: Set the child tableau to be the given image_tableau.
@@ -132,14 +134,26 @@ class vgui_easy2D : public vgui_displaylist2D
   //: Add an infinite line with the given projective coordinates.
   vgui_soview2D_infinite_line* add_infinite_line_3dv(double const l[3]);
 
-  //: Add a circle with the given centre (in projective coords) and radius to the display.
+  //: Add a circle with the given centre (in projective coords) and radius.
   vgui_soview2D_circle* add_circle_3dv(double const point[3], float r);
 
   //: Add a linestrip with the given n vertices to the display.
-  vgui_soview2D_linestrip* add_linestrip(unsigned n, float const *x, float const *y);
+  vgui_soview2D_linestrip* add_linestrip(unsigned n, float const *x, 
+    float const *y);
 
   //: Add  polygon with the given n vertices to the display.
-  vgui_soview2D_polygon* add_polygon(unsigned n, float const *x, float const *y);
+  vgui_soview2D_polygon* add_polygon(unsigned n, float const *x, 
+    float const *y);
+
+  //: Remove the given soview from the display.
+  void remove(vgui_soview* vso) { vgui_displaybase_tableau::remove(vso); }
+
+  //: Clear all soviews from the display.
+  void clear() { vgui_displaybase_tableau::clear(); }
+
+  //: Returns a list of all soviews on the display.
+  vcl_vector<vgui_soview*> const &get_all() const 
+  { return vgui_displaybase_tableau::get_all(); }
 
   //: If the child tableau is an image_tableau, return this.
   vgui_image_tableau_sptr get_image_tableau() { return image_image; }
@@ -152,11 +166,11 @@ class vgui_easy2D : public vgui_displaylist2D
                     bool print_geom_objs, int wd=-1, int ht=-1);
 
  protected:
-  //: Destructor - called by vgui_easy2D_sptr.
-  ~vgui_easy2D() { }
+  //: Destructor - called by vgui_easy2D_tableau_sptr.
+  ~vgui_easy2D_tableau() { }
 
   //: Child tableau if there is one.
-  vgui_slot image_slot;
+  vgui_parent_child_link image_slot;
  
   //: Child image tableau, if there is one.
   vgui_image_tableau_sptr image_image;
@@ -174,20 +188,20 @@ class vgui_easy2D : public vgui_displaylist2D
   float point_size;
 };
 
-//: Create a smart-pointer to a vgui_easy2D tableau.
-struct vgui_easy2D_new : public vgui_easy2D_sptr
+//: Create a smart-pointer to a vgui_easy2D_tableau tableau.
+struct vgui_easy2D_tableau_new : public vgui_easy2D_tableau_sptr
 {
   //: Constructor - create an easy2D with the given name.
-  vgui_easy2D_new(char const *n="unnamed") :
-    vgui_easy2D_sptr(new vgui_easy2D(n)) { }
+  vgui_easy2D_tableau_new(char const *n="unnamed") :
+    vgui_easy2D_tableau_sptr(new vgui_easy2D_tableau(n)) { }
 
   //: Constructor - create an easy2D with the given image tableau as child.
-  vgui_easy2D_new(vgui_image_tableau_sptr const& i, char const* n="unnamed") :
-    vgui_easy2D_sptr(new vgui_easy2D(i, n)) { }
+  vgui_easy2D_tableau_new(vgui_image_tableau_sptr const& i, char const* n="unnamed") :
+    vgui_easy2D_tableau_sptr(new vgui_easy2D_tableau(i, n)) { }
 
   //: Constructor - create an easy2D with the given child tableau.
-  vgui_easy2D_new(vgui_tableau_sptr const& i, char const* n="unnamed") :
-    vgui_easy2D_sptr(new vgui_easy2D(i, n)) { }
+  vgui_easy2D_tableau_new(vgui_tableau_sptr const& i, char const* n="unnamed") :
+    vgui_easy2D_tableau_sptr(new vgui_easy2D_tableau(i, n)) { }
 };
 
-#endif // vgui_easy2D_h_
+#endif // vgui_easy2D_tableau_h_
