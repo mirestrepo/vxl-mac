@@ -56,7 +56,6 @@
 template<class T>
 class DiPixelRepresentationTemplate
 {
-
  public:
 
     /** check whether template type T is signed or not
@@ -65,14 +64,11 @@ class DiPixelRepresentationTemplate
      */
     inline int isSigned() const;
 
-
- protected:
-
     /** determine integer representation for template type T
      *
      ** @return integer representation
      */
-    virtual inline EP_Representation getRepresentation() const;
+    virtual EP_Representation getRepresentation() const;
 };
 
 
@@ -170,6 +166,10 @@ inline int DiPixelRepresentationTemplate<Sint32>::isSigned() const
  *
  * CVS/RCS Log:
  * $Log$
+ * Revision 1.1  2004/01/14 04:01:10  amithaperera
+ * Add better DICOM support by wrapping DCMTK, and add a stripped down
+ * version of DCMTK to v3p. Add more DICOM test cases.
+ *
  * Revision 1.12  2001/06/01 15:49:50  meichel
  * Updated copyright header
  *
