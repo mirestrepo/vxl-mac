@@ -86,10 +86,10 @@ static void test_topology_2d(void)
   cout << v1->topology_type(); 
   ASSERT(v1->topology_type() == 1);
   
-  cout << "x() y() (0,0): ";
+  cout << "x() y(): ";
   // double tmpd=v1->x();
   // double tmpd=v1->y();
-  cout << v1->x() << ' ' << v1->y();
+  cout << '(' << v1->x() << ',' << v1->y() << ')';
   ASSERT(v1->x() == 0 && v1->y() == 0);
    
   cout << "v1 == v1 ";
@@ -117,7 +117,7 @@ static void test_topology_2d(void)
   // bool tmp=v3->is_endpointp(*ed);
   ASSERT(! v3->is_endpointp(*ed));
 
-   /////////////// begin to test the zero chain 
+   /////////////// begin to test the zero_chain 
  
   cout << "************** test zero_chain  *************" << endl;
   
@@ -178,7 +178,7 @@ static void test_topology_2d(void)
   // bool tmp=ed->other_endpoint(*v1)==v2;
   ASSERT(ed->other_endpoint(*v1)==v2);
 
-  cout << "describe edge";
+  cout << "describe edge" << endl;
   ed->describe(cout, 8);
 
 
@@ -196,7 +196,7 @@ static void test_topology_2d(void)
   // bool tmp=*oc1==*oc1;
   ASSERT(*oc1 == *oc1);
 
-  cout << "! *oc1 == *oc2";
+  cout << "*oc1 != *oc2";
   // bool tmp=*oc1 == *oc2;
   ASSERT(! (*oc1 == *oc2));
 
@@ -215,8 +215,7 @@ static void test_topology_2d(void)
   ASSERT(f1->shares_edge_with(*f2));
 
 
-  
-  /////////////// begin to test the two chain  
+  /////////////// begin to test the two_chain  
   cout << "************** test two_chain  *************" << endl;
   
   vtol_two_chain_2d_ref tc=b1->get_boundary_cycle();
@@ -230,7 +229,7 @@ static void test_topology_2d(void)
   ///////////////// begin to test the block 
 
   cout << "************** test block  *************" << endl;
-  b1->print(); 
+  b1->describe(cout, 8); 
 
   //////////////////////// Test accessors
 
