@@ -1,24 +1,21 @@
 ## this little rule overrides the "all: tests" rule
 ## found in config/static-tests.mk and is necessary
-## to get the vbl-test library built before the test
-## programs are linked. the vbl-test library is needed
+## to get the vul-test library built before the test
+## programs are linked. the vul-test library is needed
 ## in order that the instantiations for it can be put
 ## in the Templates/ directory.
 orl: xall tests
 
 USES = vxl
 
-LIBRARY := vbl-test
-SOURCES += vbl_test_classes.cxx
+LIBRARY := vul-test
+SOURCES += vul_test_classes.cxx
 
-TESTS += vbl_test_all.cxx
-TESTS += vbl_test_array.cxx
-TESTS += vbl_test_sparse_array_2d.cxx
-TESTS += vbl_test_sparse_array_3d.cxx
-TESTS += vbl_test_smart_ptr.cxx
-#TESTS += vbl_test_basic_relation.cxx # FIXME - vcl_hash_map does not exist
+TESTS += vul_test_all.cxx
+TESTS += vul_test_arg.cxx
+TESTS += vul_test_sprintf.cxx
 
-IULIBS := -lvbl-test -lvbl
+IULIBS := -lvul-test -lvul
 
 #########################################
 include ${IUEROOT}/config/static-tests.mk
@@ -31,7 +28,7 @@ include ${IUEROOT}/config/static-tests.mk
 #
 # fsm:
 # However, some compilers *need* their template instances to be
-# in Templates, so make sure the vbl-test-templates library is
+# in Templates, so make sure the vul-test-templates library is
 # built and linked in.
 # Do not put the instantiations in the .cxx file; it is abomination.
 #
