@@ -86,7 +86,7 @@ vil_nitf_image_subheader_band * vil_nitf_version_v20::newImageHeaderBand (
             rval->NELUT = ish_band->NELUT;
             rval->LUTD  = new unsigned char*[rval->NLUTS];
 
-            int j;
+            unsigned int j;
             for (j = 0; j < rval->NLUTS; j++) {
                 rval->LUTD[j] = new unsigned char[rval->NELUT];
                 memcpy(rval->LUTD[j], ish_band->LUTD[j], rval->NELUT);
