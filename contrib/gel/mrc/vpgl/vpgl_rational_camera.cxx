@@ -69,6 +69,9 @@
 const int vpgl_rational_camera::O_SCALE_  = 0 ;
 const int vpgl_rational_camera::O_OFFSET_ = 1 ;
 
+const double vpgl_rational_camera::DEFAULT_SCALE_VALUE  = 1.0 ;
+const double vpgl_rational_camera::DEFAULT_OFFSET_VALUE  = 0.0 ;
+
 int vpgl_rational_camera::O_SCALE () {return O_SCALE_ ; }
 int vpgl_rational_camera::O_OFFSET () {return O_OFFSET_ ; }
 
