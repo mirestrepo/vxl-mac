@@ -110,15 +110,15 @@ class DiMonoFlipTemplate
     {
         if (pixel != NULL)
         {
-            Data = new T[getCount()];
-            if (Data != NULL)
+            this->Data = new T[this->getCount()];
+            if (this->Data != NULL)
             {
                 if (horz && vert)
-                    flipHorzVert(&pixel, &Data);
+                    flipHorzVert(&pixel, &this->Data);
                 else if (horz)
-                    flipHorz(&pixel, &Data);
+                    flipHorz(&pixel, &this->Data);
                 else if (vert)
-                    flipVert(&pixel, &Data);
+                    flipVert(&pixel, &this->Data);
             }
         }
     }
@@ -132,6 +132,10 @@ class DiMonoFlipTemplate
  *
  * CVS/RCS Log:
  * $Log$
+ * Revision 1.1  2004/01/14 04:01:10  amithaperera
+ * Add better DICOM support by wrapping DCMTK, and add a stripped down
+ * version of DCMTK to v3p. Add more DICOM test cases.
+ *
  * Revision 1.7  2001/06/01 15:49:44  meichel
  * Updated copyright header
  *

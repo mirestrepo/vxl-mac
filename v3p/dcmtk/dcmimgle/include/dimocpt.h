@@ -92,9 +92,9 @@ class DiMonoCopyTemplate
     {
         if (pixel != NULL)
         {
-            Data = new T[getCount()];
-            if (Data != NULL)
-                OFBitmanipTemplate<T>::copyMem(pixel, Data, getCount());
+            this->Data = new T[this->getCount()];
+            if (this->Data != NULL)
+                OFBitmanipTemplate<T>::copyMem(pixel, this->Data, this->getCount());
         }
     }
 };
@@ -107,6 +107,10 @@ class DiMonoCopyTemplate
  *
  * CVS/RCS Log:
  * $Log$
+ * Revision 1.1  2004/01/14 04:01:10  amithaperera
+ * Add better DICOM support by wrapping DCMTK, and add a stripped down
+ * version of DCMTK to v3p. Add more DICOM test cases.
+ *
  * Revision 1.8  2001/06/01 15:49:44  meichel
  * Updated copyright header
  *
