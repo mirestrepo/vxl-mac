@@ -387,7 +387,7 @@ const int numberOfDcmStorageSOPClassUIDs =
 **
 ** The global variable numberOfDcmImageSOPClassUIDs
 ** defines the size of the array.
-** NOTE: this list represets a subset of the dcmStorageSOPClassUIDs list
+** NOTE: this list represents a subset of the dcmStorageSOPClassUIDs list
 */
 
 const char* dcmImageSOPClassUIDs[] = {
@@ -780,7 +780,7 @@ static unsigned char *getMACAddress(unsigned char buffer[6])
                 varBindList.list = varBind;
                 varBind[0].name = MIB_NULL;
                 varBind[1].name = MIB_NULL;
-                /* copy in the OID to find the number of entries in the inteface table */
+                /* copy in the OID to find the number of entries in the interface table */
                 varBindList.len = 1;        /* only retrieving one item */
                 m_Copy(&varBind[0].name, &MIB_ifEntryNum);
                 ret = m_Query(SNMP_PDU_GETNEXT, &varBindList, &errorStatus, &errorIndex);
@@ -1068,6 +1068,9 @@ char* dcmGenerateUniqueIdentifier(char* uid, const char* prefix)
 /*
 ** CVS/RCS Log:
 ** $Log$
+** Revision 1.2  2004/01/15 15:50:24  amithaperera
+** Fix borland build.
+**
 ** Revision 1.1  2004/01/14 04:01:10  amithaperera
 ** Add better DICOM support by wrapping DCMTK, and add a stripped down
 ** version of DCMTK to v3p. Add more DICOM test cases.

@@ -226,7 +226,7 @@ class DcmTime
      *  the DICOM format ("&ZZZZ" where "&" is "+" or "-" and "ZZZZ" hours and minutes) to a
      *  floating point value, e.g. "+1.0" means plus one hour and "-2.5" minus two and a half
      *  hour, i.e. 2 hours and 30 minutes.
-     *  The resulting 'timeZone' value can be used in conjuction with a OFTime object to convert
+     *  The resulting 'timeZone' value can be used in conjunction with a OFTime object to convert
      *  the time to different time zones (e.g. to local time or UTC).
      *  @param dicomTimeZone string value in DICOM format ("&ZZZZ") to be converted
      *  @param timeZone reference to floating point variable where the resulting UTC offset is stored
@@ -243,6 +243,10 @@ class DcmTime
 /*
 ** CVS/RCS Log:
 ** $Log$
+** Revision 1.1  2004/01/14 04:01:10  amithaperera
+** Add better DICOM support by wrapping DCMTK, and add a stripped down
+** version of DCMTK to v3p. Add more DICOM test cases.
+**
 ** Revision 1.15  2002/12/06 12:49:19  joergr
 ** Enhanced "print()" function by re-working the implementation and replacing
 ** the boolean "showFullData" parameter by a more general integer flag.

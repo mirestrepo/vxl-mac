@@ -285,7 +285,7 @@ OFCondition DcmDataset::write(DcmOutputStream &outStream,
     if (errorFlag.good() && fTransferState != ERW_ready)
     {
       /* Determine the transfer syntax which shall be used. Either we use the one which was passed, */
-      /* or (if it's an unknown tranfer syntax) we use the one which is contained in this->Xfer. */
+      /* or (if it's an unknown transfer syntax) we use the one which is contained in this->Xfer. */
       E_TransferSyntax newXfer = oxfer;
       if (newXfer == EXS_Unknown)
         newXfer = Xfer;
@@ -557,6 +557,10 @@ void DcmDataset::removeAllButOriginalRepresentations()
 /*
 ** CVS/RCS Log:
 ** $Log$
+** Revision 1.1  2004/01/14 04:01:10  amithaperera
+** Add better DICOM support by wrapping DCMTK, and add a stripped down
+** version of DCMTK to v3p. Add more DICOM test cases.
+**
 ** Revision 1.32  2002/12/09 09:30:49  wilkens
 ** Modified/Added doc++ documentation.
 **

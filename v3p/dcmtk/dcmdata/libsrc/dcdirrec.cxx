@@ -548,7 +548,7 @@ static void hostToDicomFilename(char *fname)
 {
     /*
     ** Massage filename into dicom format.
-    ** Elmiminate any invalid characters.
+    ** Eliminate any invalid characters.
     ** Most commonly there is a '.' at the end of a filename.
     */
     int len = strlen(fname);
@@ -1411,6 +1411,10 @@ const char* DcmDirectoryRecord::getRecordsOriginFile()
 /*
  * CVS/RCS Log:
  * $Log$
+ * Revision 1.1  2004/01/14 04:01:10  amithaperera
+ * Add better DICOM support by wrapping DCMTK, and add a stripped down
+ * version of DCMTK to v3p. Add more DICOM test cases.
+ *
  * Revision 1.44  2002/12/06 12:55:43  joergr
  * Enhanced "print()" function by re-working the implementation and replacing
  * the boolean "showFullData" parameter by a more general integer flag.

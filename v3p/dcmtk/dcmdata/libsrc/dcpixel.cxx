@@ -1038,6 +1038,10 @@ OFCondition DcmPixelData::loadAllDataIntoMemory(void)
 /*
 ** CVS/RCS Log:
 ** $Log$
+** Revision 1.1  2004/01/14 04:01:10  amithaperera
+** Add better DICOM support by wrapping DCMTK, and add a stripped down
+** version of DCMTK to v3p. Add more DICOM test cases.
+**
 ** Revision 1.27  2002/12/09 09:30:54  wilkens
 ** Modified/Added doc++ documentation.
 **
@@ -1061,7 +1065,7 @@ OFCondition DcmPixelData::loadAllDataIntoMemory(void)
 **   compression (deflated little endian explicit VR transfer syntax)
 **
 ** Revision 1.22  2002/07/10 11:49:30  meichel
-** Fixed memory leak that occured when compression of an image failed in
+** Fixed memory leak that occurred when compression of an image failed in
 **   a compression codec.
 **
 ** Revision 1.21  2002/04/25 10:19:53  joergr

@@ -147,6 +147,10 @@ class DcmMetaInfo
 /*
 ** CVS/RCS Log:
 ** $Log$
+** Revision 1.1  2004/01/14 04:01:09  amithaperera
+** Add better DICOM support by wrapping DCMTK, and add a stripped down
+** version of DCMTK to v3p. Add more DICOM test cases.
+**
 ** Revision 1.18  2002/12/06 12:49:11  joergr
 ** Enhanced "print()" function by re-working the implementation and replacing
 ** the boolean "showFullData" parameter by a more general integer flag.
@@ -185,7 +189,7 @@ class DcmMetaInfo
 ** Updated copyright header in module dcmdata
 **
 ** Revision 1.8  1997/09/22 14:56:12  hewett
-** Added a method to retreive the original transfer syntax of a read
+** Added a method to retrieve the original transfer syntax of a read
 ** meta-header (getOriginalXfer).  This functionality is needed by
 ** the DCMCHECK package.
 **

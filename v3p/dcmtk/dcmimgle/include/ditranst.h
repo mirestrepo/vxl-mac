@@ -140,6 +140,10 @@ class DiTransTemplate
  *
  * CVS/RCS Log:
  * $Log$
+ * Revision 1.1  2004/01/14 04:01:10  amithaperera
+ * Add better DICOM support by wrapping DCMTK, and add a stripped down
+ * version of DCMTK to v3p. Add more DICOM test cases.
+ *
  * Revision 1.10  2001/06/01 15:49:52  meichel
  * Updated copyright header
  *
@@ -147,7 +151,7 @@ class DiTransTemplate
  * Updated copyright header.
  *
  * Revision 1.8  2000/03/02 12:51:37  joergr
- * Rewrote variable initialization in class contructors to avoid warnings
+ * Rewrote variable initialization in class constructors to avoid warnings
  * reported on Irix.
  *
  * Revision 1.7  1999/09/17 13:08:12  joergr
