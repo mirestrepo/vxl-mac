@@ -97,7 +97,7 @@ class vil_nitf_message_header : public vil_nitf_header
 
          virtual unsigned long GetHeaderLength() const {return HL ;}  /// Return length of message header.
 	 virtual unsigned long get_data_length() const {return ML ;}  /// Return length of message. (== File length - message header length ?  MAL 23oct2003)
-	 unsigned long get_image_data_length (unsigned image_num = 0) const ;  /// get data length for Nth image.  Default is for first image.
+	 unsigned long get_image_data_length (int image_num = 0) const ;  /// get data length for Nth image.  Default is for first image.
 
 // FIGURE OUT HOW TO PASS vcl_out.
 	 //void display_header_info (vcl_ostream out) const ;
