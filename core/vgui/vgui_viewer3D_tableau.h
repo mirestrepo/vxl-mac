@@ -1,6 +1,6 @@
-// This is oxl/vgui/vgui_viewer3D.h
-#ifndef vgui_viewer3D_h_
-#define vgui_viewer3D_h_
+// This is oxl/vgui/vgui_viewer3D_tableau.h
+#ifndef vgui_viewer3D_tableau_h_
+#define vgui_viewer3D_tableau_h_
 #ifdef VCL_NEEDS_PRAGMA_INTERFACE
 #pragma interface
 #endif
@@ -10,28 +10,29 @@
 // \date   14-SEP-1999
 // \brief  Tableau with functions to view 3D objects (eg, rotate, zoom, etc).
 //
-//  Contains classes:  vgui_viewer3D  vgui_viewer3D_new
+//  Contains classes:  vgui_viewer3D_tableau  vgui_viewer3D_tableau_new
 // 
 // \verbatim
 //  Modifications:
 //    14-SEP-1999 P.Pritchett - Initial version.
-//    07-AUG-2002 K.Y.McGaul - changed to and added Doxygen style comments.
+//    07-AUG-2002 K.Y.McGaul - Changed to and added Doxygen style comments.
+//    01-OCT-2002 K.Y.McGaul - Moved vgui_viewer3D to vgui_viewer3D_tableau.
 // \endverbatim
 
-#include "vgui_viewer3D_sptr.h"
+#include "vgui_viewer3D_tableau_sptr.h"
 #include <vgui/vgui_wrapper_tableau.h>
 #include <vgui/vgui_drag_mixin.h>
 #include <vgui/vgui_event_condition.h>
 #include "dll.h"
 
-struct vgui_viewer3D_spin;
+struct vgui_viewer3D_tableau_spin;
 
 //:  Tableau with functions to view 3D objects (eg, rotate, zoom, etc).
-class vgui_viewer3D : public vgui_wrapper_tableau, public vgui_drag_mixin
+class vgui_viewer3D_tableau : public vgui_wrapper_tableau, public vgui_drag_mixin
 {
  public:
-  //: Constructor - don't use this, use vgui_viewer3D_new.
-  vgui_viewer3D(vgui_tableau_sptr const&);
+  //: Constructor - don't use this, use vgui_viewer3D_tableau_new.
+  vgui_viewer3D_tableau(vgui_tableau_sptr const&);
 
   // vgui_tableau methods
   void draw_before_child();
@@ -63,34 +64,13 @@ class vgui_viewer3D : public vgui_wrapper_tableau, public vgui_drag_mixin
   // Implementation
   void setup_gl_matrices();
 
-  //: Data on the current state of vgui_viewer3D (eg, the amount we are zoomed).
+  //: Data on the current state of vgui_viewer3D_tableau (eg, the amount we are zoomed).
   struct token_t
   {
     float quat[4];     // quaternion
     float scale;
     float trans[3];
     float fov;
-#if 0 // use compiler generated copy constructors
-    token_t(const token_t& that) { operator=(that); }
-
-    // CC -n32 doens't like the "token_t::"
-    token_t& operator=(const token_t& that) {
-      this->quat[0] = that.quat[0];
-      this->quat[1] = that.quat[1];
-      this->quat[2] = that.quat[2];
-      this->quat[3] = that.quat[3];
-
-      this->scale = that.scale;
-
-      this->trans[0] = that.trans[0];
-      this->trans[1] = that.trans[1];
-      this->trans[2] = that.trans[2];
-
-      this->fov = that.fov;
-
-      return *this;
-    }
-#endif
     token_t() {
       quat[0] = quat[1] = quat[2] = quat[3] = 0.0f;
       scale = 0.0;
@@ -115,13 +95,13 @@ class vgui_viewer3D : public vgui_wrapper_tableau, public vgui_drag_mixin
   bool headlight;
 
  protected:
- ~vgui_viewer3D();
+ ~vgui_viewer3D_tableau();
 
  private:
   vgui_event event;
   vgui_event last;
 
-  vgui_viewer3D *viewer;
+  vgui_viewer3D_tableau *viewer;
   float beginx;
   float beginy;
   token_t lastpos;
@@ -131,14 +111,14 @@ class vgui_viewer3D : public vgui_wrapper_tableau, public vgui_drag_mixin
   bool lock_dolly;
   bool lock_zoom;
 
-  vgui_viewer3D_spin *spin_data;
+  vgui_viewer3D_tableau_spin *spin_data;
 };
 
-//: Create a smart pointer to a vgui_viewer3D tableau.
-struct vgui_viewer3D_new : public vgui_viewer3D_sptr
+//: Create a smart pointer to a vgui_viewer3D_tableau tableau.
+struct vgui_viewer3D_tableau_new : public vgui_viewer3D_tableau_sptr
 {
-  typedef vgui_viewer3D_sptr base;
-  vgui_viewer3D_new(vgui_tableau_sptr const& a) : base(new vgui_viewer3D(a)) { }
+  typedef vgui_viewer3D_tableau_sptr base;
+  vgui_viewer3D_tableau_new(vgui_tableau_sptr const& a) : base(new vgui_viewer3D_tableau(a)) { }
 };
 
-#endif // vgui_viewer3D_h_
+#endif // vgui_viewer3D_tableau_h_

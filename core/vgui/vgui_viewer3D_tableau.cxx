@@ -1,4 +1,4 @@
-// This is oxl/vgui/vgui_viewer3D.cxx
+// This is oxl/vgui/vgui_viewer3D_tableau.cxx
 #ifdef VCL_NEEDS_PRAGMA_INTERFACE
 #pragma implementation
 #endif
@@ -6,14 +6,14 @@
 // \file
 // \author Philip C. Pritchett, RRG, University of Oxford
 // \date   14-SEP-1999
-// \brief  See vgui_viewer3D.h for a description of this file
+// \brief  See vgui_viewer3D_tableau.h for a description of this file
 //
 // \verbatim
 //  Modifications:
 //    14-SEP-1999 P.Pritchett - Initial version.
 // \endverbatim
 
-#include "vgui_viewer3D.h"
+#include "vgui_viewer3D_tableau.h"
 
 #include <vcl_cmath.h>
 
@@ -29,16 +29,16 @@
 
 static bool debug=false;
 
-struct vgui_viewer3D_spin {
-  vgui_viewer3D *viewer;
+struct vgui_viewer3D_tableau_spin {
+  vgui_viewer3D_tableau *viewer;
   float delta_r[4];
   double delay;
 };
 
-const void * const vgui_viewer3D::SPIN_EVENT="x";
+const void * const vgui_viewer3D_tableau::SPIN_EVENT="x";
 
-//: Constructor - don't use this, use vgui_viewer3D_new.
-vgui_viewer3D::vgui_viewer3D(vgui_tableau_sptr const& s) :
+//: Constructor - don't use this, use vgui_viewer3D_tableau_new.
+vgui_viewer3D_tableau::vgui_viewer3D_tableau(vgui_tableau_sptr const& s) :
   vgui_wrapper_tableau(s),
   c_mouse_rotate(vgui_LEFT),
   c_mouse_translate(vgui_RIGHT),
@@ -76,11 +76,11 @@ vgui_viewer3D::vgui_viewer3D(vgui_tableau_sptr const& s) :
   headlight = true;
 }
 
-vgui_viewer3D::~vgui_viewer3D()
+vgui_viewer3D_tableau::~vgui_viewer3D_tableau()
 {
 }
 
-vcl_string vgui_viewer3D::type_name() const {return "vgui_viewer3D";}
+vcl_string vgui_viewer3D_tableau::type_name() const {return "vgui_viewer3D_tableau";}
 
 static void draw_headlight() {
   //glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
@@ -106,7 +106,7 @@ static void draw_headlight() {
 }
 
 
-void vgui_viewer3D::setup_gl_matrices() {
+void vgui_viewer3D_tableau::setup_gl_matrices() {
   GLdouble vp[4];
   glGetDoublev(GL_VIEWPORT, vp); // ok
   double width = vp[2];
@@ -135,9 +135,9 @@ void vgui_viewer3D::setup_gl_matrices() {
 }
 
 
-void vgui_viewer3D::draw_before_child()
+void vgui_viewer3D_tableau::draw_before_child()
 {
-  if (debug) vcl_cerr << "vgui_viewer3D::draw_before_child\n";
+  if (debug) vcl_cerr << "vgui_viewer3D_tableau::draw_before_child\n";
 
   // Setup OpenGL for 3D
   glEnable(GL_CULL_FACE);
@@ -192,7 +192,7 @@ void vgui_viewer3D::draw_before_child()
 }
 
 
-bool vgui_viewer3D::handle(const vgui_event& e)
+bool vgui_viewer3D_tableau::handle(const vgui_event& e)
 {
   if (this->spinning) {
     if (c_mouse_rotate(e) ||
@@ -201,9 +201,9 @@ bool vgui_viewer3D::handle(const vgui_event& e)
       this->spinning = false;
   }
 
-  if (this->allow_spinning && this->spinning && event.user == &vgui_viewer3D::SPIN_EVENT) {
+  if (this->allow_spinning && this->spinning && event.user == &vgui_viewer3D_tableau::SPIN_EVENT) {
 
-    vgui_viewer3D_spin const* spin_data = (vgui_viewer3D_spin const*)event.data;
+    vgui_viewer3D_tableau_spin const* spin_data = (vgui_viewer3D_tableau_spin const*)event.data;
 
     if (spin_data->viewer == this) {
 
@@ -238,24 +238,10 @@ bool vgui_viewer3D::handle(const vgui_event& e)
 
 
   if (e.type == vgui_DRAW) {
-    if (debug) vcl_cerr << "vgui_viewer3D vgui_DRAW\n";
+    if (debug) vcl_cerr << "vgui_viewer3D_tableau vgui_DRAW\n";
     draw_before_child();
-#if 0
-    vgui_event eprime = e;
 
-    if (gl_mode == textured) {
-      if (debug) vcl_cerr << "vgui_viewer3D textured\n";
-      eprime.user = (void*) &vgui_3D::textured;
-    }
-    else if (gl_mode == wireframe) {
-      if (debug) vcl_cerr << "vgui_viewer3D wireframe\n";
-      eprime.user = (void*) &vgui_3D::wireframe;
-    }
-
-    child->handle(eprime);
-#else
     child && child->handle(e);
-#endif
     return true;
   }
   else {
@@ -266,14 +252,7 @@ bool vgui_viewer3D::handle(const vgui_event& e)
   }
 }
 
-#if 0 // unused
-inline bool gotmods(vgui_event const& event)
-{
-  return event.modifier_is_down(vgui_SHIFT);
-}
-#endif
-
-bool vgui_viewer3D::mouse_down(int x, int y, vgui_button button, vgui_modifier /*modifier*/)
+bool vgui_viewer3D_tableau::mouse_down(int x, int y, vgui_button button, vgui_modifier /*modifier*/)
 {
   if (c_mouse_rotate(event) || c_mouse_translate(event) || c_mouse_zoom(event)) {
     beginx = x;
@@ -287,7 +266,7 @@ bool vgui_viewer3D::mouse_down(int x, int y, vgui_button button, vgui_modifier /
   return false;
 }
 
-bool vgui_viewer3D::mouse_drag(int x, int y, vgui_button button, vgui_modifier modifier) {
+bool vgui_viewer3D_tableau::mouse_drag(int x, int y, vgui_button button, vgui_modifier modifier) {
 
   // SPINNING
   if (c_mouse_rotate(button, modifier)) {
@@ -363,7 +342,7 @@ bool vgui_viewer3D::mouse_drag(int x, int y, vgui_button button, vgui_modifier m
   return false;
 }
 
-bool vgui_viewer3D::mouse_up(int x, int y, vgui_button button, vgui_modifier modifier) {
+bool vgui_viewer3D_tableau::mouse_up(int x, int y, vgui_button button, vgui_modifier modifier) {
 
   // SPINNING
   if (this->allow_spinning && c_mouse_rotate(button, modifier)) {
@@ -387,7 +366,7 @@ bool vgui_viewer3D::mouse_up(int x, int y, vgui_button button, vgui_modifier mod
       double delay = event.secs_since(last);
 
       delete spin_data;
-      spin_data = new vgui_viewer3D_spin;
+      spin_data = new vgui_viewer3D_tableau_spin;
       spin_data->viewer = this;
       spin_data->delay = delay;
       for (int i=0; i<4; ++i)
@@ -402,10 +381,10 @@ bool vgui_viewer3D::mouse_up(int x, int y, vgui_button button, vgui_modifier mod
   return false;
 }
 
-bool vgui_viewer3D::help() {
+bool vgui_viewer3D_tableau::help() {
   vcl_cerr << vcl_endl;
   // awfawf fixme
-  vcl_cerr << "-- vgui_viewer3D ---------\n";
+  vcl_cerr << "-- vgui_viewer3D_tableau ---------\n";
   vcl_cerr << "|     mouse              |\n";
   vcl_cerr << "| shift+left        zoom |\n";
   vcl_cerr << "| shift+middle    rotate |\n";
@@ -427,7 +406,7 @@ bool vgui_viewer3D::help() {
   return false;
 }
 
-bool vgui_viewer3D::key_press(int, int, vgui_key key, vgui_modifier modifier) {
+bool vgui_viewer3D_tableau::key_press(int, int, vgui_key key, vgui_modifier modifier) {
   if (c_lock_dolly(key, modifier)) {
     lock_dolly = !lock_dolly;
     vgui::out << "viewer3D : dolly lock " << vbl_bool_ostream::on_off(lock_dolly) << vcl_endl;
@@ -461,13 +440,13 @@ bool vgui_viewer3D::key_press(int, int, vgui_key key, vgui_modifier modifier) {
   }
 
   if (c_render_mode(key, modifier)) {
-    if (this->gl_mode == vgui_viewer3D::wireframe) {
+    if (this->gl_mode == vgui_viewer3D_tableau::wireframe) {
       vgui::out << "viewer3D : textured rendering\n";
-      this->gl_mode = vgui_viewer3D::textured;
+      this->gl_mode = vgui_viewer3D_tableau::textured;
     }
-    else if (this->gl_mode == vgui_viewer3D::textured) {
+    else if (this->gl_mode == vgui_viewer3D_tableau::textured) {
       vgui::out << "viewer3D : wireframe rendering\n";
-      this->gl_mode = vgui_viewer3D::wireframe;
+      this->gl_mode = vgui_viewer3D_tableau::wireframe;
     }
     this->post_redraw();
     return true;
