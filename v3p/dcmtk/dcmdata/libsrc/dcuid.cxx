@@ -654,7 +654,7 @@ static long gethostid(void)
 
 // Visual C++ prior to version 6 declared different type names
 // in <snmp.h>, so we need to define a mapping
-#if _MSC_VER < 1200
+#if defined(__MSC_VER__) && _MSC_VER < 1200
 typedef RFC1157VarBind     SnmpVarBind;
 typedef RFC1157VarBindList SnmpVarBindList;
 typedef AsnInteger         AsnInteger32;
@@ -1068,6 +1068,10 @@ char* dcmGenerateUniqueIdentifier(char* uid, const char* prefix)
 /*
 ** CVS/RCS Log:
 ** $Log$
+** Revision 1.1  2004/01/14 04:01:10  amithaperera
+** Add better DICOM support by wrapping DCMTK, and add a stripped down
+** version of DCMTK to v3p. Add more DICOM test cases.
+**
 ** Revision 1.43  2002/12/09 13:14:07  joergr
 ** Renamed parameter/local variable to avoid name clashes with global
 ** declaration left and/or right (used for as iostream manipulators).
