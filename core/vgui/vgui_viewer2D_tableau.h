@@ -1,6 +1,6 @@
-// This is oxl/vgui/vgui_viewer2D.h
-#ifndef vgui_viewer2D_h_
-#define vgui_viewer2D_h_
+// This is oxl/vgui/vgui_viewer2D_tableau.h
+#ifndef vgui_viewer2D_tableau_h_
+#define vgui_viewer2D_tableau_h_
 #ifdef VCL_NEEDS_PRAGMA_INTERFACE
 #pragma interface
 #endif
@@ -10,34 +10,35 @@
 // \date   14 Sep 99
 // \brief  Tableau with functions to view 2D objects (eg, zoom, drag, centre).
 //
-//  Contains classes:  vgui_viewer2D  vgui_viewer2D_new
+//  Contains classes:  vgui_viewer2D_tableau  vgui_viewer2D_tableau_new
 //
 // \verbatim
 //  Modifications
 //    23-AUG-2000 Marko Bacic, Oxford RRG -- Added support for scroll bars
-//    07-Aug-2002 K.Y.McGaul - Changed to and added Doxygen style comments.
+//    07-AUG-2002 K.Y.McGaul - Changed to and added Doxygen style comments.
+//    01-OCT-2002 K.Y.McGaul - Moved vgui_viewer2D to vgui_viewer2D_tableau.
 // \endverbatim
 
 #include <vgui/vgui_drag_mixin.h>
 #include <vgui/vgui_wrapper_tableau.h>
-#include <vgui/vgui_viewer2D_sptr.h>
+#include <vgui/vgui_viewer2D_tableau_sptr.h>
 
 #include "dll.h"
 
 //: Tableau with functions to view 2D objects (eg, zoom, drag, centre).
-class vgui_viewer2D : public vgui_wrapper_tableau, public vgui_drag_mixin
+class vgui_viewer2D_tableau : public vgui_wrapper_tableau, public vgui_drag_mixin
 {
  public:
-  //: Constructor - don't use this, use vgui_viewer2D_new.
+  //: Constructor - don't use this, use vgui_viewer2D_tableau_new.
   //  Takes a child tableau as parameter.
-  vgui_viewer2D(vgui_tableau_sptr const&);
+  vgui_viewer2D_tableau(vgui_tableau_sptr const&);
 
   //: Handle all events sent to this tableau.
   //  In particular, uses gestures from the user to zoom, drag and centre
   //  the display.
   virtual bool handle(const vgui_event& event);
 
-  //: Returns the type of this tableau ('vgui_viewer2D').
+  //: Returns the type of this tableau ('vgui_viewer2D_tableau').
   virtual vcl_string type_name() const;
 
   //: Set the correct projection matrix for GL (take account of zoom, drag etc).
@@ -72,7 +73,7 @@ class vgui_viewer2D : public vgui_wrapper_tableau, public vgui_drag_mixin
   //: Called when the user presses a key.
   bool key_press(int x, int y, vgui_key key, vgui_modifier);
 
-  //: Data on the current state of vgui_viewer2D (eg the amount we are zoomed).
+  //: Data on the current state of vgui_viewer2D_tableau (eg the amount we are zoomed).
   struct token_t
   {
     float scaleX;
@@ -101,17 +102,17 @@ class vgui_viewer2D : public vgui_wrapper_tableau, public vgui_drag_mixin
   float zoom_factor;
 
  protected:
-  //: Destructor - called by vgui_viewer2D_sptr.
- ~vgui_viewer2D();
+  //: Destructor - called by vgui_viewer2D_tableau_sptr.
+ ~vgui_viewer2D_tableau();
 };
 
-//: Create a smart-pointer to a vgui_viewer2D tableau.
-struct vgui_viewer2D_new : public vgui_viewer2D_sptr
+//: Create a smart-pointer to a vgui_viewer2D_tableau tableau.
+struct vgui_viewer2D_tableau_new : public vgui_viewer2D_tableau_sptr
 {
-  //: Create a smart-pointer to a vgui_viewer2D tableau.
+  //: Create a smart-pointer to a vgui_viewer2D_tableau tableau.
   //  Takes a child tableau as parameter.
-  vgui_viewer2D_new(vgui_tableau_sptr const& that) :
-    vgui_viewer2D_sptr(new vgui_viewer2D(that)) { }
+  vgui_viewer2D_tableau_new(vgui_tableau_sptr const& that) :
+    vgui_viewer2D_tableau_sptr(new vgui_viewer2D_tableau(that)) { }
 };
 
-#endif // vgui_viewer2D_h_
+#endif // vgui_viewer2D_tableau_h_

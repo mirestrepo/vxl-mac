@@ -1,4 +1,4 @@
-// This is oxl/vgui/vgui_viewer2D.cxx
+// This is oxl/vgui/vgui_viewer2D_tableau.cxx
 #ifdef VCL_NEEDS_PRAGMA_INTERFACE
 #pragma implementation
 #endif
@@ -6,9 +6,9 @@
 // \file
 // \author Philip C. Pritchett, RRG, University of Oxford
 // \date   14 Sep 99
-// \brief  See vgui_viewer2D.h for a description of this file.
+// \brief  See vgui_viewer2D_tableau.h for a description of this file.
 
-#include "vgui_viewer2D.h"
+#include "vgui_viewer2D_tableau.h"
 
 #include <vcl_cmath.h>
 #include <vbl/vbl_bool_ostream.h>
@@ -32,13 +32,13 @@
 //  h = w * (H/W)
 //  w = h * (W/H)
 
-const void * const vgui_viewer2D::CENTER_EVENT="x";
+const void * const vgui_viewer2D_tableau::CENTER_EVENT="x";
 
 // this is what it always was. please leave it. -- fsm.
 vgui_event_condition c_pan(vgui_MIDDLE, vgui_CTRL);
 //vgui_event_condition c_pan(vgui_LEFT, vgui_modifier(vgui_CTRL + vgui_SHIFT));
 
-vgui_viewer2D::vgui_viewer2D(vgui_tableau_sptr const& s) :
+vgui_viewer2D_tableau::vgui_viewer2D_tableau(vgui_tableau_sptr const& s) :
   vgui_wrapper_tableau(s),
   nice_points(true),
   nice_lines(true),
@@ -53,11 +53,11 @@ vgui_viewer2D::vgui_viewer2D(vgui_tableau_sptr const& s) :
 {
 }
 
-vgui_viewer2D::~vgui_viewer2D()
+vgui_viewer2D_tableau::~vgui_viewer2D_tableau()
 {
 }
 
-void vgui_viewer2D::setup_gl_matrices()
+void vgui_viewer2D_tableau::setup_gl_matrices()
 {
   GLint vp[4];
   glGetIntegerv(GL_VIEWPORT, vp);
@@ -87,7 +87,7 @@ void vgui_viewer2D::setup_gl_matrices()
 // this routine will modify the token in such a way as to
 // effect a zoom about the point (x, y) by the given factor.
 // (x, y) are in viewport coords.
-void vgui_viewer2D::zoomin(float zoom_factor, int x, int y)
+void vgui_viewer2D_tableau::zoomin(float zoom_factor, int x, int y)
 {
   // this bit is easy.
   token.scaleX *= zoom_factor;
@@ -106,12 +106,12 @@ void vgui_viewer2D::zoomin(float zoom_factor, int x, int y)
 }
 
 
-void vgui_viewer2D::zoomout(float zoom_factor, int x, int y)
+void vgui_viewer2D_tableau::zoomout(float zoom_factor, int x, int y)
 {
   zoomin(1.0 / zoom_factor, x, y);
 }
 
-void vgui_viewer2D::center_image(int w, int h)
+void vgui_viewer2D_tableau::center_image(int w, int h)
 {
   GLfloat vp[4];
   glGetFloatv(GL_VIEWPORT, vp);
@@ -125,7 +125,7 @@ void vgui_viewer2D::center_image(int w, int h)
 }
 
 
-vcl_string vgui_viewer2D::type_name() const {return "vgui_viewer2D";}
+vcl_string vgui_viewer2D_tableau::type_name() const {return "vgui_viewer2D_tableau";}
 
 static void draw_rect(float x0, float y0, float x1, float y1)
 {
@@ -140,7 +140,7 @@ static void draw_rect(float x0, float y0, float x1, float y1)
   glEnd();
 }
 
-bool vgui_viewer2D::handle(const vgui_event& e)
+bool vgui_viewer2D_tableau::handle(const vgui_event& e)
 {
   if (e.type == vgui_DRAW)
   {
@@ -205,26 +205,26 @@ bool vgui_viewer2D::handle(const vgui_event& e)
   return child->handle(e);
 }
 
-bool vgui_viewer2D::mouse_down(int x, int y, vgui_button button, vgui_modifier modifier)
+bool vgui_viewer2D_tableau::mouse_down(int x, int y, vgui_button button, vgui_modifier modifier)
 {
   // Middle mouse button press.  Update last seen mouse position. And set
   //  "panning" true since button is pressed.
   if (c_pan(button, modifier))
   {
 #ifdef DEBUG
-    vcl_cerr << "vgui_viewer2D_handler::middle\n";
+    vcl_cerr << "vgui_viewer2D_tableau_handler::middle\n";
 #endif
     prev_x = x;
     prev_y = y;
     panning = true;
     return true;
   }
-  if (this->zoom_type == vgui_viewer2D::normal_zoom && !sweep_next)
+  if (this->zoom_type == vgui_viewer2D_tableau::normal_zoom && !sweep_next)
   {
     if (button == vgui_LEFT && (modifier & vgui_CTRL))
     {
 #ifdef DEBUG
-      vcl_cerr << "vgui_viewer2D_handler::left\n";
+      vcl_cerr << "vgui_viewer2D_tableau_handler::left\n";
 #endif
       this->zoomin(zoom_factor, int(x), int(y));
       this->post_redraw();
@@ -233,19 +233,19 @@ bool vgui_viewer2D::mouse_down(int x, int y, vgui_button button, vgui_modifier m
     else if (button == vgui_RIGHT && (modifier & vgui_CTRL))
     {
 #ifdef DEBUG
-      vcl_cerr << "vgui_viewer2D_handler::right\n";
+      vcl_cerr << "vgui_viewer2D_tableau_handler::right\n";
 #endif
       this->zoomout(zoom_factor, int(x), int(y));
       this->post_redraw();
       return true;
     }
   }
-  else if (this->zoom_type == vgui_viewer2D::smooth_zoom && !sweep_next)
+  else if (this->zoom_type == vgui_viewer2D_tableau::smooth_zoom && !sweep_next)
   {// if this->smooth_zoom
     if (button == vgui_LEFT && (modifier & vgui_CTRL))
     {
 #ifdef DEBUG
-      vcl_cerr << "vgui_viewer2D_handler::left\n";
+      vcl_cerr << "vgui_viewer2D_tableau_handler::left\n";
 #endif
       prev_x = x;
       prev_y = y;
@@ -276,10 +276,10 @@ bool vgui_viewer2D::mouse_down(int x, int y, vgui_button button, vgui_modifier m
   return false;
 }
 
-bool vgui_viewer2D::mouse_drag(int x, int y,  vgui_button /*button*/, vgui_modifier /*modifier*/)
+bool vgui_viewer2D_tableau::mouse_drag(int x, int y,  vgui_button /*button*/, vgui_modifier /*modifier*/)
 {
 #ifdef DEBUG
-  vcl_cerr << __FILE__ ": vgui_viewer2D_handler::mouse_drag\n";
+  vcl_cerr << __FILE__ ": vgui_viewer2D_tableau_handler::mouse_drag\n";
 #endif
 
   if (!panning && !smooth_zooming && !sweep_zooming)
@@ -311,7 +311,7 @@ bool vgui_viewer2D::mouse_drag(int x, int y,  vgui_button /*button*/, vgui_modif
     // this is called during the sweep zoom operation. we have
     // to (a) repair the front buffer, (b) draw the new rectangle
     // and (c) remember where the mouse pointer was (in new_x, new_y).
-    vgui_matrix_state gl_state; gl_state.save();  // save the projection matrix
+    vgui_matrix_state gl_state;
 
     //vcl_cerr << "begin_sw_overlay..." << flush;
     vgui_utils::begin_sw_overlay();
@@ -367,7 +367,6 @@ bool vgui_viewer2D::mouse_drag(int x, int y,  vgui_button /*button*/, vgui_modif
     draw_rect(zoom_x - vp[0], zoom_y - vp[1], new_x - vp[0], new_y - vp[1]);
 
     vgui_utils::end_sw_overlay();
-    // at this point, the projection matrix is restored
   }
 
   // Update last seen mouse position.
@@ -376,10 +375,10 @@ bool vgui_viewer2D::mouse_drag(int x, int y,  vgui_button /*button*/, vgui_modif
   return true;
 }
 
-bool vgui_viewer2D::mouse_up(int /*x*/, int /*y*/,  vgui_button button, vgui_modifier /*modifier*/)
+bool vgui_viewer2D_tableau::mouse_up(int /*x*/, int /*y*/,  vgui_button button, vgui_modifier /*modifier*/)
 {
 #ifdef DEBUG
-  vcl_cerr << "vgui_viewer2D_handler::mouse_up\n";
+  vcl_cerr << "vgui_viewer2D_tableau_handler::mouse_up\n";
 #endif
 
   if (sweep_zooming && button == vgui_LEFT)
@@ -423,11 +422,10 @@ bool vgui_viewer2D::mouse_up(int /*x*/, int /*y*/,  vgui_button button, vgui_mod
   return false;
 }
 
-bool vgui_viewer2D::help()
+bool vgui_viewer2D_tableau::help()
 {
-#if 0
   vcl_cerr << vcl_endl;
-  vcl_cerr << "-- vgui_viewer2D ----------\n";
+  vcl_cerr << "-- vgui_viewer2D_tableau ----------\n";
   vcl_cerr << "|     mouse               |\n";
   vcl_cerr << "| ctrl+left       zoom in |\n";
   vcl_cerr << "| ctrlt+middle        pan |\n";
@@ -443,19 +441,13 @@ bool vgui_viewer2D::help()
   vcl_cerr << "| `d'          sweep zoom |\n";
   vcl_cerr << "--------------------------\n";
   vcl_cerr << vcl_endl;
-#endif
   return false;
 }
 
-void vgui_viewer2D::center_event()
+void vgui_viewer2D_tableau::center_event()
 {
-#if 0
-  vgui_event eprime;
-  eprime.user = (void*) &vgui_viewer2D::CENTER_EVENT;
-  eprime.data = (void*) viewer;
-  this->handle(eprime);
-#else
-  vgui_tableau_sptr t = vgui_find_below_by_type_name(this, "vgui_image_tableau");
+  vgui_tableau_sptr t = vgui_find_below_by_type_name(this, 
+    "vgui_image_tableau");
   if (!t)
     t = vgui_find_below_by_type_name(this, "xcv_image_tableau");
   if (t)
@@ -465,13 +457,12 @@ void vgui_viewer2D::center_event()
   }
   else
     vcl_cerr << __FILE__ " : no image found\n";
-#endif
 }
 
-bool vgui_viewer2D::key_press(int /*x*/, int /*y*/, vgui_key key, vgui_modifier modifier)
+bool vgui_viewer2D_tableau::key_press(int /*x*/, int /*y*/, vgui_key key, vgui_modifier modifier)
 {
 #ifdef DEBUG
-  vcl_cerr << "vgui_viewer2D_handler::key_press " << key << vcl_endl;
+  vcl_cerr << "vgui_viewer2D_tableau_handler::key_press " << key << vcl_endl;
 #endif
   switch(key) {
   case 'x':
@@ -511,14 +502,14 @@ bool vgui_viewer2D::key_press(int /*x*/, int /*y*/, vgui_key key, vgui_modifier 
     sweep_next = true;;
     return true;
   case 'z':
-    if (this->zoom_type == vgui_viewer2D::normal_zoom)
+    if (this->zoom_type == vgui_viewer2D_tableau::normal_zoom)
     {
-      this->zoom_type = vgui_viewer2D::smooth_zoom;
+      this->zoom_type = vgui_viewer2D_tableau::smooth_zoom;
       vgui::out << "viewer2D : smooth\n";
     }
     else
     {
-      this->zoom_type = vgui_viewer2D::normal_zoom;
+      this->zoom_type = vgui_viewer2D_tableau::normal_zoom;
       vgui::out << "viewer2D : normal\n";
     }
     return true;
