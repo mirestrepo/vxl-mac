@@ -89,10 +89,10 @@ public:
   //: Returns true if the advance has finished and a frame is available.
   virtual bool is_frame_available() const;
 
-  //: Read the next frame from the stream (advance and acquire)
+  //: Read the next frame from the stream (advance and acquire).
   virtual vidl2_frame_sptr read_frame();
 
-  //: Return the current frame in the stream
+  //: Return the current frame in the stream.
   virtual vidl2_frame_sptr current_frame();
 
   //: Seek to the given frame number

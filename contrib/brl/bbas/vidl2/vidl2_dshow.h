@@ -25,6 +25,8 @@
 #include <dshow.h>
 #include <qedit.h>
 
+enum vidl2_pixel_format;
+
 struct vidl2_dshow
 {
   //: Initialize COM (must be called before using any of these functions).
@@ -52,6 +54,12 @@ struct vidl2_dshow
 
   //: Get multimedia subtype GUID from FOURCC.
   static GUID get_guid_from_fourcc(const vcl_string& fourcc);
+
+  //: Extract information from AM_MEDIA_TYPE object.
+  static void get_media_info(const AM_MEDIA_TYPE& amt,
+                             unsigned int& width,
+                             unsigned int& height,
+                             vidl2_pixel_format& pixel_format);
 
   //: Delete AM_MEDIA_TYPE memory.
   static void delete_media_type(AM_MEDIA_TYPE& amt);
