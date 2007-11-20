@@ -24,7 +24,7 @@
 /////////////////////////////////////////////////////////////////////////////
 #include <vcl_iostream.h>
 #include <vbl/vbl_ref_count.h>
-#include <bgeo/bgeo_dll.h>
+#include <vpgl/bgeo/bgeo_dll.h>
 class bgeo_lvcs : public vbl_ref_count
 {
   // PUBLIC INTERFACE----------------------------------------------------------
