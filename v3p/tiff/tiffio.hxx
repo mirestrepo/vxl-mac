@@ -1,4 +1,4 @@
-/* $Header$ */
+/* $Id$ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler
@@ -24,51 +24,19 @@
  * OF THIS SOFTWARE.
  */
 
+#ifndef _TIFFIO_HXX_
+#define	_TIFFIO_HXX_
+
 /*
- * TIFF Library.
+ * TIFF I/O library definitions which provide C++ streams API.
  */
-#include "tiffiop.h"
 
-TIFFErrorHandlerExt _TIFFwarningHandlerExt = NULL;
+#include <iostream>
+#include "tiff.h"
 
-TIFFErrorHandler
-TIFFSetWarningHandler(TIFFErrorHandler handler)
-{
-	TIFFErrorHandler prev = _TIFFwarningHandler;
-	_TIFFwarningHandler = handler;
-	return (prev);
-}
+extern	TIFF* TIFFStreamOpen(const char*, std::ostream *);
+extern	TIFF* TIFFStreamOpen(const char*, std::istream *);
 
-TIFFErrorHandlerExt
-TIFFSetWarningHandlerExt(TIFFErrorHandlerExt handler)
-{
-	TIFFErrorHandlerExt prev = _TIFFwarningHandlerExt;
-	_TIFFwarningHandlerExt = handler;
-	return (prev);
-}
+#endif /* _TIFFIO_HXX_ */
 
-void
-TIFFWarning(const char* module, const char* fmt, ...)
-{
-	va_list ap;
-	va_start(ap, fmt);
-	if (_TIFFwarningHandler)
-		(*_TIFFwarningHandler)(module, fmt, ap);
-	if (_TIFFwarningHandlerExt)
-		(*_TIFFwarningHandlerExt)(0, module, fmt, ap);
-	va_end(ap);
-}
-
-void
-TIFFWarningExt(thandle_t fd, const char* module, const char* fmt, ...)
-{
-	va_list ap;
-	va_start(ap, fmt);
-	if (_TIFFwarningHandler)
-		(*_TIFFwarningHandler)(module, fmt, ap);
-	if (_TIFFwarningHandlerExt)
-		(*_TIFFwarningHandlerExt)(fd, module, fmt, ap);
-	va_end(ap);
-}
-
-
+/* vim: set ts=8 sts=8 sw=8 noet: */
