@@ -1,4 +1,4 @@
-#include "bvxm_rec_update_changes_wrt_area_process.h"
+#include "bvxm_rec_bayesian_update_process.h"
 
 #include <brdb/brdb_value.h>
 #include <bprb/bprb_parameters.h>
@@ -21,14 +21,14 @@
 #include <rec/bvxm_fg_bg_pair_density.h>
 #include <rec/bvxm_bayesian_propagation.h>
 
-bvxm_rec_update_changes_wrt_area_process::bvxm_rec_update_changes_wrt_area_process()
+bvxm_rec_bayesian_update_process::bvxm_rec_bayesian_update_process()
 {
   //inputs
   input_data_.resize(2,brdb_value_sptr(0));
   input_types_.resize(2);
   //input_types_[0] = "vil_image_view_base_sptr";
   input_types_[0] = "vil_image_view_base_sptr";      // input prob map p(x in B) (float map with values in [0,1]
-  input_types_[1] = "vil_image_view_base_sptr";      // input area map/glitch map
+  input_types_[1] = "vil_image_view_base_sptr";      // input measurement map
 
   //output
   output_data_.resize(2,brdb_value_sptr(0));
@@ -43,7 +43,7 @@ bvxm_rec_update_changes_wrt_area_process::bvxm_rec_update_changes_wrt_area_proce
 }
 
 
-bool bvxm_rec_update_changes_wrt_area_process::execute()
+bool bvxm_rec_bayesian_update_process::execute()
 {
   // Sanity check
   if (!this->verify_inputs())
