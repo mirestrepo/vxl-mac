@@ -117,8 +117,8 @@ typedef struct
   __global int* mean_obs;
            float* vis_inf;
            float* pre_inf;
-           float phi;
            float4 viewdir;
+           float phi;
    __constant RenderSceneInfo * linfo;
 } AuxArgs;
 
@@ -253,8 +253,8 @@ typedef struct
   __local  short2* ray_bundle_array;
   __local  int*    cell_ptrs;
   __local  float*  cached_vis;
-           float phi;
            float4 viewdir;
+           float phi;
   __constant RenderSceneInfo * linfo;
 } AuxArgs;
 
