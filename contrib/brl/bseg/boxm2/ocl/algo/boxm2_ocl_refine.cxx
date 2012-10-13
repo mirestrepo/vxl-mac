@@ -232,6 +232,8 @@ int boxm2_ocl_refine::refine_scene(bocl_device_sptr device,
   }
   vcl_cout<<" Refine GPU Time: "<<gpu_time<<", transfer time: "<<transfer_time<<vcl_endl;
   vcl_cout<<" Number of cells in scene (after refine): "<<num_cells<<vcl_endl;
+  //clear the cache
+  opencl_cache->clear_cache();
   clReleaseCommandQueue(queue);
 
   //set output

@@ -454,6 +454,9 @@ bool boxm2_ocl_update::update(boxm2_scene_sptr         scene,
   opencl_cache->unref_mem(norm_image.ptr());
   opencl_cache->unref_mem(ray_o_buff.ptr());
   opencl_cache->unref_mem(ray_d_buff.ptr());
+  
+  //clear the cache
+  opencl_cache->clear_cache();
 
   vcl_cout<<"Gpu time "<<gpu_time<<" transfer time "<<transfer_time<<vcl_endl;
   clReleaseCommandQueue(queue);
