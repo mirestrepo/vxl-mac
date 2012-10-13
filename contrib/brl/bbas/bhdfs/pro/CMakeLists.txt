@@ -6,7 +6,9 @@ IF(EXPAT_FOUND)
   INCLUDE_DIRECTORIES( ${BRL_INCLUDE_DIR}/bpro )
   INCLUDE_DIRECTORIES( ${BRL_INCLUDE_DIR}/bpro/bprb )
   INCLUDE_DIRECTORIES( ${BRL_INCLUDE_DIR}/bbas )
- 
+  INCLUDE_DIRECTORIES( ${EXPAT_INCLUDE_DIR} )
+  INCLUDE_DIRECTORIES( ${BRL_INCLUDE_DIR}/b3p/expatpp )
+
   SET(bhdfs_pro_sources
       bhdfs_processes.h
       bhdfs_register.h   bhdfs_register.cxx
@@ -17,7 +19,7 @@ IF(EXPAT_FOUND)
 
   ADD_LIBRARY(bhdfs_pro ${bhdfs_pro_sources})
 
-  TARGET_LINK_LIBRARIES(bhdfs_pro bhdfs bprb vil_algo vil_io vil)
+  TARGET_LINK_LIBRARIES(bhdfs_pro bhdfs bprb vil_algo vil_io vil vpgl boxm2)
 
   IF(BUILD_TESTING)
     SUBDIRS(tests)

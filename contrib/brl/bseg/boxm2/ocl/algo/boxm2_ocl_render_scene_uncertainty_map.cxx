@@ -17,7 +17,6 @@
 #include <boxm2/boxm2_util.h>
 #include <boxm2/ocl/algo/boxm2_ocl_camera_converter.h>
 #include <vil/vil_image_view.h>
-#include <vil/vil_load.h>
 
 #include <vnl/vnl_float_4x4.h>
 #include <vnl/vnl_inverse.h>
@@ -295,13 +294,11 @@ boxm2_ocl_render_scene_uncertainty_map::render_scene_uncertainty_map( boxm2_scen
             float theta = theta_min + radial_theta_inc * r ;
             float phi   = vcl_atan2((j-img_center_y),(i-img_center_x)) ;
 
-            unsigned prev_i = vcl_floor((phi-phi_min)/phi_inc );
-            unsigned prev_j = vcl_floor((theta-theta_min)/theta_inc);
+            int prev_i = (int)vcl_floor((phi-phi_min)/phi_inc );
+            int prev_j = (int)vcl_floor((theta-theta_min)/theta_inc);
 
-            prev_i = prev_i < 0 ? 0:prev_i;
-            prev_i = prev_i > cl_ni ? cl_ni:prev_i;
-            prev_j = prev_j < 0 ? 0:prev_j;
-            prev_j = prev_j > cl_ni ? cl_ni:prev_j;
+            prev_i = prev_i < 0 ? 0 : prev_i > (int)cl_ni ? cl_ni : prev_i;
+            prev_j = prev_j < 0 ? 0 : prev_j > (int)cl_ni ? cl_ni : prev_j;
             (*radial_image)(i,j,0) = (unsigned char) vcl_floor(255.0f*buff[prev_j*cl_ni+prev_i]);
             (*radial_image)(i,j,1) = (unsigned char) vcl_floor(255.0f*buff[prev_j*cl_ni+prev_i]);
             (*radial_image)(i,j,2) = (unsigned char) vcl_floor(255.0f*buff[prev_j*cl_ni+prev_i]);
@@ -362,18 +359,22 @@ boxm2_ocl_render_scene_uncertainty_map::render_scene_uncertainty_map( boxm2_scen
         float phi = vcl_atan2(ray.y(),ray.x());
 
         float r = vcl_floor((theta_max-theta_min)/radial_theta_inc/2);
-        int k = vcl_floor(r*vcl_cos(phi) +img_center_x );
-        int j = vcl_floor(r*vcl_sin(phi) +img_center_y );
+        int k = (int)vcl_floor(r*vcl_cos(phi) +img_center_x );
+        int j = (int)vcl_floor(r*vcl_sin(phi) +img_center_y );
 
-        for (unsigned ki = k-7;ki<=k+7;ki++)
-            for (unsigned ji = j-7;ji<=j+7;ji++)
+        for (int ki = k-7;ki<=k+7;++ki)
+        {
+            if (ki<0 || ki>=(int)cl_ni)
+                continue;
+            for (int ji = j-7;ji<=j+7;++ji)
             {
-                if (ki<0 || ki>=cl_ni || ji <0 || ji >=cl_ni)
+                if (ji<0 || ji>=(int)cl_ni)
                     continue;
                 (* radial_image)(ki,ji,0) = 0;
                 (* radial_image)(ki,ji,1) = 255;
                 (* radial_image)(ki,ji,2) = 0;
             }
+        }
     }
 #if 0
     vcl_cout<<" DRAW TRAJECTORY"<<vcl_endl;
@@ -381,12 +382,12 @@ boxm2_ocl_render_scene_uncertainty_map::render_scene_uncertainty_map( boxm2_scen
     {
         float y = x[0]+x[1]*phi+x[2]*phi*phi+x[3]*phi*phi*phi;
         float r = vcl_floor((y-theta_min)/radial_theta_inc);
-        unsigned i = vcl_floor(r*vcl_cos(phi) +img_center_x );
-        unsigned j = vcl_floor(r*vcl_sin(phi) +img_center_y );
+        int i = vcl_floor(r*vcl_cos(phi) +img_center_x );
+        int j = vcl_floor(r*vcl_sin(phi) +img_center_y );
         if (i<0 || i>=cl_ni || j <0 || j >=cl_ni)
             continue;
-        for (unsigned ii = i-3;ii<=i+3;ii++)
-            for (unsigned jj = j-3;jj<=j+3;jj++)
+        for (int ii = i-3;ii<=i+3;ii++)
+            for (int jj = j-3;jj<=j+3;jj++)
             {
                 (* radial_image)(ii,jj,0) = 255;
                 (* radial_image)(ii,jj,1) = 0;

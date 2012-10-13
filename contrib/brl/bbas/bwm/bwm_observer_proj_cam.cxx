@@ -39,18 +39,19 @@ read_camera(vcl_string cam_path, vcl_string subtype,
       bp_in.close();
       vpgl_proj_camera<double> cam(pcam.get_matrix());
       return cam.clone();
-    }else if(ext == ".kml"){
+    }
+    else if (ext == ".kml") {
       double right_fov, top_fov;
       double altitude, heading;
       double tilt, roll;
-      bool success = 
+      bool success =
         bwm_io_kml_camera::read_camera(cam_path, right_fov, top_fov,
                                        altitude, heading, tilt, roll);
-      if(!success){
+      if (!success) {
         vcl_cerr << "In bwm_observer_proj_cam::read_kml_camera(.) -\n"
                  << " invalid binary camera file " << cam_path.data() << '\n';
         return 0;
-      } 
+      }
       vpgl_perspective_camera<double> cam =
         bpgl_camera_utils::camera_from_kml(ni, nj, right_fov, top_fov,
                                            altitude, heading, tilt, roll);
@@ -59,9 +60,6 @@ read_camera(vcl_string cam_path, vcl_string subtype,
     //An ASCII stream for perspective camera
     vpgl_perspective_camera<double> pcam;
     vcl_ifstream cam_stream(cam_path.data());
-
-
-
 
     if (!cam_stream.is_open())
     {
@@ -74,8 +72,12 @@ read_camera(vcl_string cam_path, vcl_string subtype,
 #ifdef DEBUG
     vcl_cout << pcam << vcl_endl;
 #endif
+#if 0 // was returning a projective cam
     vpgl_proj_camera<double> cam(pcam.get_matrix());
     return cam.clone();
+#endif
+    // now returns a perspective cam
+    return new vpgl_perspective_camera<double>(pcam);
   }
   //must be an ASCII stream for projective camera
   vcl_ifstream cam_stream(cam_path.data());
@@ -109,7 +111,7 @@ bwm_observer_proj_cam::bwm_observer_proj_cam(bgui_image_tableau_sptr img,
 
   img->set_image_resource(img_res, params);
   img->set_file_name(image_path);
-
+  scene_ = depth_map_scene(img_res->ni(), img_res->nj());
   // check if the camera path is not empty, if it is NITF, the camera
   // info is in the image, not a separate file
   if (subtype!="identity"&&cam_path.size() == 0)
@@ -121,9 +123,18 @@ bwm_observer_proj_cam::bwm_observer_proj_cam(bgui_image_tableau_sptr img,
   if (subtype=="identity")
     camera_ = new vpgl_perspective_camera<double>();
   else
-  camera_ = bwm_observer_proj_cam::read_camera(cam_path,subtype,
-                                               img_res->ni(),
-                                               img_res->nj());
+    camera_ = bwm_observer_proj_cam::read_camera(cam_path,subtype,
+                                                 img_res->ni(),
+                                                 img_res->nj());
+  if (camera_&& subtype == "perspective") {
+    vpgl_perspective_camera<double>* cam =
+      static_cast<vpgl_perspective_camera<double>*>(camera_);
+    scene_.set_camera(*cam);
+    vcl_string ipath = img_tab_->file_name();
+    vcl_string img_file = vul_file::strip_directory(ipath);
+    scene_.set_image_path(img_file);
+  }
+
   //generate a unique tab name if null
   if (name=="")
     name = cam_path;

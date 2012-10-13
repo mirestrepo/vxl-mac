@@ -67,6 +67,8 @@ class boxm2_scene_adaptor(object):
   def lvcs(self) :
     return self.lvcs
 
+  def cache() :
+	return self.cache;
   #update with alternate explaination prior and appearance density
   def update_with_alt(self, cam, img, update_alpha=True, mask=None, var=-1.0, alt_prior=None, alt_density=None):
     cache = self.opencl_cache
@@ -118,7 +120,8 @@ class boxm2_scene_adaptor(object):
       cache = self.cpu_cache;
       dev = None;
     if self.rgb :
-      expimg = render_rgb(self.scene, cache, cam, ni, nj, dev);
+      expimg, vis_image = render_rgb(self.scene, cache, cam, ni, nj, dev);
+      boxm2_batch.remove_data(vis_image.id)
     else :
       expimg = render_grey(self.scene, cache, cam, ni, nj, dev, ident_string);
     return expimg;
@@ -135,8 +138,6 @@ class boxm2_scene_adaptor(object):
       dev = None;
     if self.rgb :
 	  expimg, vis_image = render_rgb(self.scene, cache, cam, ni, nj, dev);
-      #print "Render visibility map not implemented for color scenes";
-      #return;
     else :
       expimg, vis_image = render_grey_and_vis(self.scene, cache, cam, ni, nj, dev);
     return expimg, vis_image;
@@ -147,13 +148,13 @@ class boxm2_scene_adaptor(object):
     dev = self.device;
     #check if force gpu or cpu
     if device_string=="gpu" : 
-      cache = self.opencl_cache; 
+      cache = self.opencl_cache;
     elif device_string=="cpp" : 
       cache = self.cpu_cache; 
-      dev = None; 
-    expimg,varimg = render_depth(self.scene, cache, cam, ni, nj, dev); 
-    return expimg,varimg; 
-    
+      dev = None;
+    expimg,varimg,visimg = render_depth(self.scene, cache, cam, ni, nj, dev);
+    return expimg,varimg,visimg;
+
   #render z image wrapper
   def render_z_image(self, cam, ni=1280, nj=720, normalize = False, device_string="") :
     cache = self.active_cache;
@@ -191,7 +192,7 @@ class boxm2_scene_adaptor(object):
       dev = None;
     ingest_height_map(self.scene, cache,x_img,y_img,z_img, zero_out_alpha, dev);
     return ;
-    
+
   #ingest heigh map
   def ingest_height_map_space(self,x_img,y_img,z_img, crust_thickness,device_string="") :
     cache = self.active_cache;
@@ -205,7 +206,7 @@ class boxm2_scene_adaptor(object):
     return ;
     
   #ingest buckeye-style dem
-  def ingest_buckeye_dem(self, first_ret_fname, last_ret_fname, geoid_height, device_string="") :
+  def ingest_buckeye_dem(self, first_ret_fname, last_ret_fname, geoid_height,geocam, device_string="") :
     cache = self.active_cache;
     dev = self.device;
     if device_string=="gpu" :
@@ -213,9 +214,14 @@ class boxm2_scene_adaptor(object):
     elif device_string=="cpp" :
       cache = self.cpu_cache;
       dev = None;
-    ingest_buckeye_dem(self.scene, cache, first_ret_fname, last_ret_fname, geoid_height, dev);
+    ingest_buckeye_dem(self.scene, cache, first_ret_fname, last_ret_fname, geoid_height,geocam, dev);
     return ;
 
+  def probabiltiy_of(self, cam, image):
+	cache = self.active_cache;
+	dev = self.device;
+	outimg = compute_probabiltiy_of_image(self.device,self.scene, self.opencl_cache, cam, image);
+	return outimg;
   # detect change wrapper,
   def change_detect(self, cam, img, exp_img, n=1, raybelief="", max_mode=False, rgb=False, device_string="") :
     cache = self.active_cache;

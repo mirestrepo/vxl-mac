@@ -1,9 +1,7 @@
 #include <vcl_where_root_dir.h>
 #include <testlib/testlib_test.h>
 #include <vcl_iostream.h>
-#include <vnl/vnl_matrix.h>
 #include <vnl/algo/vnl_cholesky.h>
-#include <vnl/vnl_inverse.h>
 #include <bocl/bocl_manager.h>
 #include <bocl/bocl_kernel.h>
 #include <bocl/bocl_mem.h>
@@ -47,7 +45,7 @@ static void create_test_data(vnl_vector<double> & samples,
   for (unsigned i=0; i < num_samples; ++i)
   {
     double elev = rand.drand32(vnl_math::pi/6,vnl_math::pi/3);
-    double azim = rand.drand32(2*vnl_math::pi);
+    double azim = rand.drand32(vnl_math::twopi);
     vnl_double_3 vv(vcl_sin(elev)*vcl_cos(azim),
                     vcl_sin(elev)*vcl_sin(azim),
                     vcl_cos(elev));
@@ -113,7 +111,7 @@ static void ocl_phongs_model(vnl_vector<float> & x,
   vnl_vector<float> sun_angles(2);
   sun_angles[0] = sun_elev;
   sun_angles[1] = sun_phi;
-  for (unsigned i=0; i<m; ++i)
+  for (int i=0; i<m; ++i)
   {
     obs[i] = samples[i];
     weights[i] = samples_weights[i];
@@ -205,7 +203,7 @@ static void ocl_phongs_model(vnl_vector<float> & x,
   clFinish( queue );
   //xbuff->read_to_buffer(queue);
   vcl_cout<<"Solution (OCL): "<<time <<' ';
-  for (unsigned i=0; i<n; ++i)
+  for (int i=0; i<n; ++i)
     vcl_cout<<x[i]<<' ';
   vcl_cout<<vcl_endl;
 }

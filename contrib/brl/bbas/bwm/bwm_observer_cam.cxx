@@ -477,41 +477,41 @@ void bwm_observer_cam::translate_along_optical_axis(double da)
 
   if (select_list.size() == 1 &&
       select_list[0]->type_name().compare("bgui_vsol_soview2D_polygon") == 0)
-  {
-    bgui_vsol_soview2D_polygon* poly =
-      static_cast<bgui_vsol_soview2D_polygon*> (select_list[0]);
+    {
+      bgui_vsol_soview2D_polygon* poly =
+        static_cast<bgui_vsol_soview2D_polygon*> (select_list[0]);
 
-    //find the mesh this polygon belongs to
-    unsigned int face_id;
-    bwm_observable_sptr obs = find_object(poly->get_id(), face_id);
-    if (!obs)
-    {
-      vcl_cerr << "In bwm_observer_cam::translate_along_optical_axis - "
-               << "nothing selected to move\n";
+      //find the mesh this polygon belongs to
+      unsigned int face_id;
+      bwm_observable_sptr obs = find_object(poly->get_id(), face_id);
+      if (!obs)
+      {
+        vcl_cerr << "In bwm_observer_cam::translate_along_optical_axis - "
+                 << "nothing selected to move\n";
+        return;
+      }
+      vcl_vector<vsol_point_3d_sptr> verts = obs->extract_vertices();
+      if (!verts.size())
+      {
+        vcl_cerr << "In bwm_observer_cam::translate_along_optical_axis - "
+                 << "object has no vertices\n";
+        return;
+      }
+      vsol_point_3d_sptr p3d = verts[0];
+      vgl_point_3d<double> pg3d= p3d->get_p();
+      //get the direction of a ray
+      vgl_vector_3d<double> ray_dir;
+      if (!vpgl_ray::ray(camera_, pg3d, ray_dir))
+      {
+        vcl_cerr << "In bwm_observer_cam::translate_along_optical_axis - "
+                 << "ray direction computation failed\n";
+        return;
+      }
+      ray_dir *= da;
+      this->translate(ray_dir, obs);
+      this->select_object(obs);
       return;
     }
-    vcl_vector<vsol_point_3d_sptr> verts = obs->extract_vertices();
-    if (!verts.size())
-    {
-      vcl_cerr << "In bwm_observer_cam::translate_along_optical_axis - "
-               << "object has no vertices\n";
-      return;
-    }
-    vsol_point_3d_sptr p3d = verts[0];
-    vgl_point_3d<double> pg3d= p3d->get_p();
-    //get the direction of a ray
-    vgl_vector_3d<double> ray_dir;
-    if (!vpgl_ray::ray(camera_, pg3d, ray_dir))
-    {
-      vcl_cerr << "In bwm_observer_cam::translate_along_optical_axis - "
-               << "ray direction computation failed\n";
-      return;
-    }
-    ray_dir *= da;
-    this->translate(ray_dir, obs);
-    this->select_object(obs);
-    return;
-  }
   vcl_cerr << "In bwm_observer_cam::translate_along_optical_axis - "
            << "not exactly one selected vertex\n";
 }
@@ -626,11 +626,11 @@ void bwm_observer_cam::create_circular_polygon(vcl_vector< vsol_point_2d_sptr > 
     return;
   }
 
-  num_sect = (2*vnl_math::pi*r)/(r/4.0);
+  num_sect = vnl_math::twopi*r/(r/4.0);
 
   // create points on the circle
   vcl_vector< vsol_point_3d_sptr > circle_pts;
-  double rho= 2*vnl_math::pi / num_sect;
+  double rho= vnl_math::twopi / num_sect;
   double x, y;
   double cx = c.x(), cy = c.y();
   for (int i=0; i<num_sect; i++) {
@@ -1721,6 +1721,7 @@ void bwm_project_meshes(vcl_vector<vcl_string> paths,
     }
   }
 }
+
 #if 0
 void bwm_observer_cam::create_boxm_scene()
 {
@@ -1952,7 +1953,7 @@ void bwm_observer_cam::set_horizon()
 
 void bwm_observer_cam::calibrate_cam_from_horizon()
 {
-  if (!horizon_){
+  if (!horizon_) {
     vcl_cout << "Null horizon - can't calibrate the camera\n";
     return;
   }
@@ -1971,24 +1972,11 @@ void bwm_observer_cam::calibrate_cam_from_horizon()
   camera_ = new vpgl_perspective_camera<double>(cam);
 }
 
-void bwm_observer_cam::camera_from_kml(double right_fov, double top_fov,
-                                       double altitude, double heading,
-                                       double tilt, double roll){
-  double ni = img_tab_->width(), nj = img_tab_->height();
-  vpgl_perspective_camera<double> cam  =
-    bpgl_camera_utils::camera_from_kml(ni, nj, right_fov, top_fov,
-                                       altitude, heading, tilt, roll);
-  vcl_cout << "kml camera\n" << cam << '\n';
-  if (camera_)
-    delete camera_;
-  camera_ = new vpgl_perspective_camera<double>(cam);
-}
-
 void bwm_observer_cam::toggle_cam_horizon()
 {
   if (!camera_||(camera_->type_name() != "vpgl_perspective_camera"))
     return;
-  if (horizon_soview_){
+  if (horizon_soview_) {
     // in vgui_easy2D
     remove(horizon_soview_);
     horizon_soview_ = 0;
@@ -2003,3 +1991,107 @@ void bwm_observer_cam::toggle_cam_horizon()
   post_redraw();
 }
 
+//==========================  depth map methods =================
+void bwm_observer_cam::set_ground_plane()
+{
+  // get the selected polygon
+
+  vcl_vector<vgui_soview2D*> polys = get_selected_objects(POLYGON_TYPE);
+  if (polys.size()!=1) {
+    vcl_cout << "Not a single polygon selected - select a single polygon\n";
+    return;
+  }
+  bgui_vsol_soview2D_polygon* p = reinterpret_cast<bgui_vsol_soview2D_polygon*>(polys[0]);
+  scene_.set_ground_plane( p->sptr() );
+}
+
+void bwm_observer_cam::set_sky()
+{
+  vcl_vector<vgui_soview2D*> polys = get_selected_objects(POLYGON_TYPE);
+  if (polys.size()!=1) {
+    vcl_cout << "Not a single polygon selected - select a single polygon\n";
+    return;
+  }
+  bgui_vsol_soview2D_polygon* p = reinterpret_cast<bgui_vsol_soview2D_polygon*>(polys[0]);
+
+  scene_.set_sky( p->sptr());
+}
+
+void bwm_observer_cam::add_vertical_depth_region(double min_depth,
+                                                 double max_depth,
+                                                 vcl_string name) {
+  vcl_vector<vgui_soview2D*> polys = get_selected_objects(POLYGON_TYPE);
+  if (polys.size()!=1) {
+    vcl_cout << "Not a single polygon selected - select a single polygon\n";
+    return;
+  }
+  bgui_vsol_soview2D_polygon* p = reinterpret_cast<bgui_vsol_soview2D_polygon*>(polys[0]);
+  scene_.add_ortho_perp_region(p->sptr(), min_depth, max_depth, name);
+}
+
+vcl_vector<depth_map_region_sptr> bwm_observer_cam::scene_regions()
+{
+  vcl_vector<depth_map_region_sptr> regions;
+  if (scene_.sky()) regions.push_back(scene_.sky());
+  if (scene_.ground_plane()) regions.push_back(scene_.ground_plane());
+  vcl_vector<depth_map_region_sptr> temp = scene_.scene_regions();
+  for (vcl_vector<depth_map_region_sptr>::iterator rit = temp.begin();
+       rit != temp.end(); ++rit)
+    regions.push_back((*rit));
+  return regions;
+}
+
+void bwm_observer_cam::set_ground_plane_max_depth()
+{
+  if (scene_.ground_plane()) {
+    double depth = scene_.ground_plane()->max_depth();
+    if (depth != -1.0)
+      scene_.set_ground_plane_max_depth(depth);
+  }
+}
+
+void bwm_observer_cam::save_depth_map_scene(vcl_string const& path)
+{
+  vsl_b_ofstream os(path.c_str());
+  if (!os) {
+    vcl_cout << "invalid binary stream for path " << path << vcl_endl;
+    return;
+  }
+  scene_.b_write(os);
+}
+
+void bwm_observer_cam::display_depth_map_scene()
+{
+  depth_map_region_sptr gp = scene_.ground_plane();
+  if (gp) {
+    bwm_observer_img::create_polygon(gp->region_2d());
+    vsol_point_2d_sptr c = gp->centroid_2d();
+    if (c) {
+      float x = static_cast<float>(c->x());
+      float y = static_cast<float>(c->y());
+      img_tab_->text_tab()->add(x, y, gp->name());
+    }
+  }
+  depth_map_region_sptr sky = scene_.sky();
+  if (sky) {
+    bwm_observer_img::create_polygon(sky->region_2d());
+    vsol_point_2d_sptr c = sky->centroid_2d();
+    if (c) {
+      float x = static_cast<float>(c->x());
+      float y = static_cast<float>(c->y());
+      img_tab_->text_tab()->add(x, y, sky->name());
+    }
+  }
+  vcl_vector<depth_map_region_sptr> regions = scene_.scene_regions();
+  for (vcl_vector<depth_map_region_sptr>::iterator rit = regions.begin();
+       rit != regions.end(); ++rit) {
+    bwm_observer_img::create_polygon((*rit)->region_2d());
+    vsol_point_2d_sptr c = (*rit)->centroid_2d();
+    if (c) {
+      float x = static_cast<float>(c->x());
+      float y = static_cast<float>(c->y());
+      img_tab_->text_tab()->add(x, y, (*rit)->name());
+    }
+    post_redraw();
+  }
+}

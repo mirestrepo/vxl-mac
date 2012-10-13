@@ -53,7 +53,7 @@ bool vpgl_load_geo_camera_process(bprb_func_process& pro)
   trans_matrix[3][3] = 1.0;
   ifs.close();
 
-  vcl_cout << "trans matrix: " << trans_matrix << vcl_endl;
+  //vcl_cout << "trans matrix: " << trans_matrix << vcl_endl;
 
   vpgl_geo_camera *cam = new vpgl_geo_camera(trans_matrix, lvcs);
   if (utm_zone != 0)
@@ -180,17 +180,17 @@ bool vpgl_geo_footprint_process(bprb_func_process& pro)
     return false;
   }
 
-  double lon, lat, elev;
-  geocam->img_to_wgs(0,0,0,lon,lat,elev);
+  double lon, lat;
+  geocam->img_to_global(0,0,lon,lat);
   vnl_double_2 ul; ul[0] = lat; ul[1] = lon;
 
-  geocam->img_to_wgs(0,nj,0,lon,lat,elev);
+  geocam->img_to_global(0,nj,lon,lat);
   vnl_double_2 ur; ur[0] = lat; ur[1] = lon;
 
-  geocam->img_to_wgs(ni,0,0,lon,lat,elev);
+  geocam->img_to_global(ni,0,lon,lat);
   vnl_double_2 ll; ll[0] = lat; ll[1] = lon;
 
-  geocam->img_to_wgs(ni,nj,0,lon,lat,elev);
+  geocam->img_to_global(ni,nj,lon,lat);
   vnl_double_2 lr; lr[0] = lat; lr[1] = lon;
 
   vcl_string g_id = vul_file::strip_directory(geotiff_filename);
@@ -201,6 +201,41 @@ bool vpgl_geo_footprint_process(bprb_func_process& pro)
   if (init_finish)
     bkml_write::close_document(ofs);
 
+  return true;
+}
+
+
+bool vpgl_geo_cam_global_to_img_process_cons(bprb_func_process& pro)
+{
+  //this process takes 3 inputs and one output
+  vcl_vector<vcl_string> input_types;
+  input_types.push_back("vpgl_camera_double_sptr");  // input geo camera
+  input_types.push_back("double"); // lon
+  input_types.push_back("double"); // lat
+  vcl_vector<vcl_string> output_types;
+  output_types.push_back("int");  // i
+  output_types.push_back("int");  // j
+  return pro.set_input_types(input_types)
+      && pro.set_output_types(output_types);
+}
+
+//: Execute the process
+bool vpgl_geo_cam_global_to_img_process(bprb_func_process& pro)
+{
+  if (pro.n_inputs()!= 3) {
+    vcl_cout << "vpgl_translate_geo_camera_process: The number of inputs should be 3" << vcl_endl;
+    return false;
+  }
+
+  // get the inputs
+  vpgl_camera_double_sptr cam = pro.get_input<vpgl_camera_double_sptr>(0);
+  double lon = pro.get_input<double>(1);
+  double lat = pro.get_input<double>(2);
+  vpgl_geo_camera* geocam = dynamic_cast<vpgl_geo_camera*> (cam.ptr());
+  double u,v;
+  geocam->global_to_img(lon, lat, 0.0, u, v);
+  pro.set_output_val<int>(0, (int)u);
+  pro.set_output_val<int>(1, (int)v);
   return true;
 }
 

@@ -193,8 +193,8 @@ void msm_shape_mode_view::set_mode(unsigned m)
 {
   if (shape_model_==0) return;
 
-  mode_ = m;
   if (m>=shape_model().n_modes()) m = shape_model().n_modes();
+  mode_ = m;
 
   if (b_.size()!=mode_)
   {

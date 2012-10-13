@@ -58,11 +58,16 @@ open(const vcl_string& rawFile)
   raw_.open(raw_file_.c_str(), vcl_ios::in | vcl_ios::binary);
 
   int ni, nj, pixelSize;
-  vxl_int_64 numFrames;
+  int numFrames;
   raw_.read( (char*) &ni, sizeof(ni) );
   raw_.read( (char*) &nj, sizeof(nj) );
   raw_.read( (char*) &pixelSize, sizeof(pixelSize) );
   raw_.read( (char*) &numFrames, sizeof(numFrames) );
+  //vj modification
+  vxl_int_64 timestamp;
+  for (int i = 0; i < numFrames; ++i)
+    raw_.read( (char*) &timestamp, sizeof(timestamp) );
+
   vcl_cout<<"Raw file header:\n"
           <<"  size: "<<ni<<','<<nj<<'\n'
           <<"  pixel:"<<pixelSize<<'\n'
@@ -134,7 +139,8 @@ bil_raw_image_istream::current_frame()
     {
       //calc image size, seek to offset
       unsigned int imgSize = ni_*nj_*pixel_size_/8;
-      long long loc = 20 + (long long) index_* ( (long long)imgSize + 8);
+      //  vj Modification
+      long long loc = 20+8*num_frames_ + (long long) index_* ( (long long)imgSize );
       raw_.seekg(loc, vcl_ios::beg);
 
       //allocate vil memory chunk
@@ -153,11 +159,11 @@ bil_raw_image_istream::current_frame()
         raw_.read( (char*) mem_chunk->data(), imgSize );
         current_frame_ = new vil_image_view<unsigned short>(mem_chunk, (unsigned short*) mem_chunk->data(), ni_, nj_, 1, 1, ni_, ni_*nj_);
       }
-
+      //  vj Modification
       //read timestamp
-      vxl_int_64 timeStamp;
-      raw_.read( (char*) &timeStamp, sizeof(timeStamp) );
-      time_stamp_ = timeStamp;
+      //vxl_int_64 timeStamp;
+      //raw_.read( (char*) &timeStamp, sizeof(timeStamp) );
+      //time_stamp_ = timeStamp;
     }
     return current_frame_;
   }

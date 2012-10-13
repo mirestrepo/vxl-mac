@@ -59,6 +59,10 @@ class boxm2_scene : public vbl_ref_count
 
     boxm2_scene(vcl_string data_path, vgl_point_3d<double> const& origin, int version = 2);
 
+    //: initializes the scene from the buffer that loaded an XML file in.
+    // this is added for decoupling from the local filesystem to load the scene
+    boxm2_scene(const char* buffer);
+
     //: initializes scene from xmlFile
     boxm2_scene(vcl_string filename);
 
@@ -69,13 +73,13 @@ class boxm2_scene : public vbl_ref_count
     void save_scene();
 
     //: return a vector of block ids in visibility order
-    vcl_vector<boxm2_block_id> get_vis_blocks(vpgl_generic_camera<double>* cam);
-    vcl_vector<boxm2_block_id> get_vis_blocks(vpgl_perspective_camera<double>* cam);
-    vcl_vector<boxm2_block_id> get_vis_blocks(vpgl_camera_double_sptr & cam) {
+    vcl_vector<boxm2_block_id> get_vis_blocks(vpgl_generic_camera<double>* cam, double dist = -1.0);
+    vcl_vector<boxm2_block_id> get_vis_blocks(vpgl_perspective_camera<double>* cam, double dist = -1.0);
+    vcl_vector<boxm2_block_id> get_vis_blocks(vpgl_camera_double_sptr & cam, double dist = -1.0) {
       if ( cam->type_name() == "vpgl_generic_camera" )
-        return this->get_vis_blocks( (vpgl_generic_camera<double>*) cam.ptr() );
+        return this->get_vis_blocks( (vpgl_generic_camera<double>*) cam.ptr(), dist );
       else if ( cam->type_name() == "vpgl_perspective_camera" )
-        return this->get_vis_blocks( (vpgl_perspective_camera<double>*) cam.ptr() );
+        return this->get_vis_blocks( (vpgl_perspective_camera<double>*) cam.ptr(), dist );
       else
         vcl_cout<<"boxm2_scene::get_vis_blocks doesn't support camera type "<<cam->type_name()<<vcl_endl;
       //else return empty
@@ -85,7 +89,11 @@ class boxm2_scene : public vbl_ref_count
     //: visibility order from point, blocks must intersect with cam box
     vcl_vector<boxm2_block_id>
     get_vis_order_from_pt(vgl_point_3d<double> const& pt,
-                          vgl_box_2d<double> camBox = vgl_box_2d<double>());
+                          vgl_box_2d<double> camBox = vgl_box_2d<double>(), double distance=-1.0);
+
+    //: visibility order using a ray given by origin and direction vector, the block needs to be in the front direction as given by this ray
+    vcl_vector<boxm2_block_id>
+    get_vis_order_from_ray(vgl_point_3d<double> const& origin, vgl_vector_3d<double> const& dir, double distance);
 
     //: return a heap pointer to a scene info
     boxm2_scene_info* get_blk_metadata(boxm2_block_id id);

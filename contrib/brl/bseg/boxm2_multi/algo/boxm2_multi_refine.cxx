@@ -15,9 +15,6 @@
 #include <bocl/bocl_mem.h>
 #include <bocl/bocl_device.h>
 #include <bocl/bocl_kernel.h>
-#include <vil/vil_image_view_base.h>
-#include <vil/vil_save.h>
-#include <vpgl/vpgl_perspective_camera.h>
 #include <vul/vul_timer.h>
 
 vcl_map<vcl_string, bocl_kernel*> boxm2_multi_refine::refine_tree_kernels_;
@@ -50,7 +47,7 @@ float boxm2_multi_refine::refine(boxm2_multi_cache& cache, float thresh)
   vcl_vector<bocl_mem_sptr> out_mems, lookups, prob_mems;
   vcl_size_t maxBlocks = 0;
   vcl_vector<boxm2_opencl_cache*> ocl_caches = cache.ocl_caches();
-  for (int i=0; i<ocl_caches.size(); ++i) {
+  for (unsigned int i=0; i<ocl_caches.size(); ++i) {
     //grab sub scene and it's cache
     boxm2_opencl_cache* ocl_cache = ocl_caches[i];
     boxm2_scene_sptr    sub_scene = ocl_cache->get_scene();
@@ -104,8 +101,8 @@ float boxm2_multi_refine::refine(boxm2_multi_cache& cache, float thresh)
   //------------------------------------------------------------------
   //STEP ONE for each device/cache, refine trees
   //------------------------------------------------------------------
-  for (int blk=0; blk<maxBlocks; ++blk) {
-    for (int i=0; i<ocl_caches.size(); ++i) {
+  for (unsigned int blk=0; blk<maxBlocks; ++blk) {
+    for (unsigned int i=0; i<ocl_caches.size(); ++i) {
       //grab sub scene and it's cache
       boxm2_opencl_cache* ocl_cache = ocl_caches[i];
       boxm2_scene_sptr    sub_scene = ocl_cache->get_scene();
@@ -123,7 +120,7 @@ float boxm2_multi_refine::refine(boxm2_multi_cache& cache, float thresh)
     }
 
     //finish
-    for (int i=0; i<queues.size(); ++i)
+    for (unsigned int i=0; i<queues.size(); ++i)
       clFinish(queues[i]);
   }
 
@@ -132,7 +129,7 @@ float boxm2_multi_refine::refine(boxm2_multi_cache& cache, float thresh)
   //------------------------------------------------------------------
   unsigned num_cells     = 0;     //number of cells in the scene after refine
   unsigned num_refined   = 0;     //number of cells that split
-  for (int i=0; i<queues.size(); ++i) {
+  for (unsigned int i=0; i<queues.size(); ++i) {
     boxm2_opencl_cache* ocl_cache = ocl_caches[i];
     boxm2_scene_sptr    sub_scene = ocl_cache->get_scene();
 
@@ -175,8 +172,8 @@ float boxm2_multi_refine::refine(boxm2_multi_cache& cache, float thresh)
   //------------------------------------------------------------------
   //STEP THREE: swap data
   //------------------------------------------------------------------
-  for (int blk=0; blk<maxBlocks; ++blk) {
-    for (int i=0; i<ocl_caches.size(); ++i) {
+  for (unsigned int blk=0; blk<maxBlocks; ++blk) {
+    for (unsigned int i=0; i<ocl_caches.size(); ++i) {
       //grab sub scene and it's cache
       boxm2_opencl_cache* ocl_cache = ocl_caches[i];
       boxm2_scene_sptr    sub_scene = ocl_cache->get_scene();
@@ -195,13 +192,13 @@ float boxm2_multi_refine::refine(boxm2_multi_cache& cache, float thresh)
     }
 
     //finish
-    for (int i=0; i<queues.size(); ++i)
+    for (unsigned int i=0; i<queues.size(); ++i)
       clFinish(queues[i]);
   }
 
   //STEP FOUR: Clean up
   vcl_cout<<" Total Num Refined: "<<num_refined<<vcl_endl;
-  for (int i=0; i<queues.size(); ++i) {
+  for (unsigned int i=0; i<queues.size(); ++i) {
     boxm2_opencl_cache* ocl_cache = ocl_caches[i];
     BlockMemMap& sizeMap = sizeMaps[i];
     BlockMemMap& copyMap = copyMaps[i];
@@ -218,7 +215,7 @@ float boxm2_multi_refine::refine(boxm2_multi_cache& cache, float thresh)
     }
   }
 
-  for (int i=0; i<queues.size(); ++i)
+  for (unsigned int i=0; i<queues.size(); ++i)
     clReleaseCommandQueue(queues[i]);
   return 0.0f;
 }
@@ -290,20 +287,20 @@ float boxm2_multi_refine::refine_trees_per_block(const boxm2_block_id& id,
 //------------------------------------------
 //: Runs non-blocking refine on block
 //------------------------------------------
-float boxm2_multi_refine::swap_data_per_block( boxm2_scene_sptr scene,
-                                               const boxm2_block_id& id,
-                                               int numTrees,
-                                               boxm2_opencl_cache* ocl_cache,
-                                               cl_command_queue& queue,
-                                               BlockMemMap&  sizebuffs,
-                                               BlockMemMap&  blockCopies,
-                                               BlockMemMap&  newDatas,
-                                               BlockIntMap&  newDataSizes,
-                                               bocl_mem_sptr cl_output,
-                                               bocl_mem_sptr lookup,
-                                               vcl_string data_type,
-                                               int  apptypesize,
-                                               bocl_mem_sptr prob_thresh )
+void boxm2_multi_refine::swap_data_per_block( boxm2_scene_sptr scene,
+                                              const boxm2_block_id& id,
+                                              int numTrees,
+                                              boxm2_opencl_cache* ocl_cache,
+                                              cl_command_queue& queue,
+                                              BlockMemMap&  sizebuffs,
+                                              BlockMemMap&  blockCopies,
+                                              BlockMemMap&  newDatas,
+                                              BlockIntMap&  newDataSizes,
+                                              bocl_mem_sptr cl_output,
+                                              bocl_mem_sptr lookup,
+                                              vcl_string data_type,
+                                              int  apptypesize,
+                                              bocl_mem_sptr prob_thresh )
 {
   bocl_device_sptr device = ocl_cache->get_device();
   int newDataSize = newDataSizes[id];

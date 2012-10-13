@@ -23,7 +23,8 @@
 #include <vnl/vnl_math.h>
 
 #include <vpgl/vpgl_camera.h>
-#include <vpgl/vpgl_perspective_camera.h>
+#include <depth_map/depth_map_scene.h>
+
 void bwm_project_meshes(vcl_vector<vcl_string> paths,
                         vpgl_camera<double>* cam,
                         vcl_vector<vgl_polygon<double> > &poly_2d_list);
@@ -35,19 +36,18 @@ class bwm_observer_cam : public bwm_observer_vgui
   typedef bwm_observer_vgui base;
 
   bwm_observer_cam(bgui_image_tableau_sptr const& img, vpgl_camera<double> *camera, vcl_string cam_path)
-    : bwm_observer_vgui(img), sun_elev_angle_(vnl_math::pi_over_4), sun_azim_angle_(vnl_math::pi_over_4),
-      camera_(camera), cam_path_(cam_path), cam_adjusted_(false),
+  : bwm_observer_vgui(img), sun_elev_angle_(vnl_math::pi_over_4), sun_azim_angle_(vnl_math::pi_over_4),
+    camera_(camera), cam_path_(cam_path), cam_adjusted_(false),
     proj_plane_(vgl_plane_3d<double>(0, 0, 1, 0)), extrude_mode_(false), show_geo_position_(false), focal_length_(3000.0), cam_height_(1.6),horizon_(0),
     horizon_soview_(0)
-    {}
-
+  {}
   // set the initial projection plane to z=0
   bwm_observer_cam(bgui_image_tableau_sptr const& img, const char* /*n*/="unnamed")
-    : bwm_observer_vgui(img), sun_elev_angle_(vnl_math::pi_over_4), sun_azim_angle_(vnl_math::pi_over_4),
-      cam_adjusted_(false),
+  : bwm_observer_vgui(img), sun_elev_angle_(vnl_math::pi_over_4), sun_azim_angle_(vnl_math::pi_over_4),
+    camera_(0), cam_adjusted_(false),
     proj_plane_(vgl_plane_3d<double>(0, 0, 1, 0)), extrude_mode_(false), show_geo_position_(false), focal_length_(3000.0), cam_height_(1.6),horizon_(0),
     horizon_soview_(0)
-    {}
+  {}
 
   virtual ~bwm_observer_cam() { delete camera_; }
 
@@ -208,13 +208,20 @@ class bwm_observer_cam : public bwm_observer_vgui
   void set_focal_length(double focal_length){focal_length_ = focal_length;}
   void set_cam_height(double cam_height){cam_height_ = cam_height;}
   void calibrate_cam_from_horizon();
-  void camera_from_kml(double right_fov, double top_fov,
-                       double altitude, double heading,
-                       double tilt, double roll);
   void toggle_cam_horizon();
+  //=====================  depth map methods ========================
+  void set_depth_map_scene(depth_map_scene const& scene){scene_ = scene;}
+  void set_ground_plane();
+  void set_sky();
+  void add_vertical_depth_region(double min_depth, double max_depth,
+                                 vcl_string name);
+  void save_depth_map_scene(vcl_string const& path);
+  void display_depth_map_scene();
+  vcl_vector<depth_map_region_sptr> scene_regions();
+  void set_ground_plane_max_depth();
  protected:
 
-  //: to compute direciton of sun.
+  //: to compute direction of sun.
   double sun_elev_angle_;
   double sun_azim_angle_;
   bool shadow_mode_;
@@ -279,6 +286,8 @@ class bwm_observer_cam : public bwm_observer_vgui
   double cam_height_;
   vsol_line_2d_sptr horizon_;//set manually
   vgui_soview* horizon_soview_;//computed from camera
+  //: objects for depth map
+  depth_map_scene scene_;
 };
 
 #endif

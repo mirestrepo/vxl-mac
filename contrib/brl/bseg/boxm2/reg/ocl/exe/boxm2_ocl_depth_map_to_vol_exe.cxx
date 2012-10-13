@@ -22,10 +22,7 @@
 
 #include <vnl/vnl_vector.h>
 #include <vnl/vnl_math.h>
-#if 0
-#include <vnl/vnl_quaternion.h>
-#include <vnl/vnl_vector_fixed.h>
-#endif
+
 #include <vcl_iostream.h>
 #include <vil/vil_save.h>
 #include <vil/vil_math.h>
@@ -99,8 +96,8 @@ int main(int argc,  char** argv)
       }
       vcl_cout<<".";
     }
-
-    vcl_cout<<"Time "<<t.all();
+    double secs = t.all()/1000.0;
+    vcl_cout<<"Time "<< secs << " secs " << secs/60.0 << " mins."<<vcl_endl;
     float min, max;
     vil_math_value_range(output, min, max);
     vcl_cout << " min mutual info in the output: " << min << " max mi: " << max << vcl_endl;

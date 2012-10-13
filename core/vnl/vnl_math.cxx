@@ -84,18 +84,20 @@ extern "C" int finite(double);
 #if !VCL_STATIC_CONST_INIT_FLOAT_NO_DEFN
 
 //: constants
-const double vnl_math::e                VCL_STATIC_CONST_INIT_FLOAT_DEFN( 2.71828182845904523540 );
-const double vnl_math::log2e            VCL_STATIC_CONST_INIT_FLOAT_DEFN( 1.44269504088896340740 );
+const double vnl_math::e                VCL_STATIC_CONST_INIT_FLOAT_DEFN( 2.71828182845904523536 );
+const double vnl_math::log2e            VCL_STATIC_CONST_INIT_FLOAT_DEFN( 1.44269504088896340736 );
 const double vnl_math::log10e           VCL_STATIC_CONST_INIT_FLOAT_DEFN( 0.43429448190325182765 );
 const double vnl_math::ln2              VCL_STATIC_CONST_INIT_FLOAT_DEFN( 0.69314718055994530942 );
 const double vnl_math::ln10             VCL_STATIC_CONST_INIT_FLOAT_DEFN( 2.30258509299404568402 );
 const double vnl_math::pi               VCL_STATIC_CONST_INIT_FLOAT_DEFN( 3.14159265358979323846 );
+const double vnl_math::twopi            VCL_STATIC_CONST_INIT_FLOAT_DEFN( 6.28318530717958647692 );
 const double vnl_math::pi_over_2        VCL_STATIC_CONST_INIT_FLOAT_DEFN( 1.57079632679489661923 );
 const double vnl_math::pi_over_4        VCL_STATIC_CONST_INIT_FLOAT_DEFN( 0.78539816339744830962 );
 const double vnl_math::pi_over_180      VCL_STATIC_CONST_INIT_FLOAT_DEFN( 0.01745329251994329577 );
 const double vnl_math::one_over_pi      VCL_STATIC_CONST_INIT_FLOAT_DEFN( 0.31830988618379067154 );
 const double vnl_math::two_over_pi      VCL_STATIC_CONST_INIT_FLOAT_DEFN( 0.63661977236758134308 );
 const double vnl_math::deg_per_rad      VCL_STATIC_CONST_INIT_FLOAT_DEFN( 57.2957795130823208772 );
+const double vnl_math::sqrt2pi          VCL_STATIC_CONST_INIT_FLOAT_DEFN( 2.50662827463100024161 );
 const double vnl_math::two_over_sqrtpi  VCL_STATIC_CONST_INIT_FLOAT_DEFN( 1.12837916709551257390 );
 const double vnl_math::one_over_sqrt2pi VCL_STATIC_CONST_INIT_FLOAT_DEFN( 0.39894228040143267794 );
 const double vnl_math::sqrt2            VCL_STATIC_CONST_INIT_FLOAT_DEFN( 1.41421356237309504880 );
@@ -316,22 +318,21 @@ char   vnl_huge_val(char)   { return 0x7f; }
 //----------------------------------------------------------------------
 double vnl_math::angle_0_to_2pi(double angle)
 {
-  double a;
-  if (angle>=2*vnl_math::pi)
-    a = vcl_fmod (angle,vnl_math::pi*2);
-  else if (angle < 0)
-    a = (2*vnl_math::pi+ vcl_fmod (angle,2*vnl_math::pi));
-  else
-    a= angle;
+  angle = vcl_fmod(angle, vnl_math::twopi);
+  if (angle >= 0) return angle;
+  double a = angle + vnl_math::twopi;
+  if (a > 0 && a < vnl_math::twopi) return a;
+  // added by Nhon: this fixes a bug when angle >= -1.1721201390607859e-016 :
+  // then after the above computation we get 6.2831853071795864769 == twopi
+  // while this function guarantees that it returns values < twopi !!!
+  if (angle < 0) return 6.28318530717958575;
+  else return angle;
+}
 
-  // added by Nhon: these two lines of code is to fix the bug when
-  // angle = -1.1721201390607859e-016
-  // then after all the computation, we get
-  // a = 6.2831853071795862 == 2*vnl_math::pi !!!!!!!
-  // this situation can happen is when a is very close to zero.
-
-  if (!(a>=0 && a<2*vnl_math::pi)) {
-    a = 0;
-  }
-  return a;
+double vnl_math::angle_minuspi_to_pi(double angle)
+{
+  angle = vcl_fmod(angle, vnl_math::twopi);
+  if (angle> vnl_math::pi) angle -= vnl_math::twopi;
+  if (angle<-vnl_math::pi) angle += vnl_math::twopi;
+  return angle;
 }

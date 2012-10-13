@@ -32,26 +32,26 @@ class boxm2_multi_refine
                                         bocl_mem_sptr& cl_output );
 
     //: refines trees in block
-    static float swap_data_per_block(boxm2_scene_sptr scene,
-                                     const boxm2_block_id& id,
-                                     int numTrees,
-                                     boxm2_opencl_cache* ocl_cache,
-                                     cl_command_queue& queue,
-                                     BlockMemMap& sizebuffs,
-                                     BlockMemMap& blockCopies,
-                                     BlockMemMap& newDatas,
-                                     BlockIntMap& newDataSizes,
-                                     bocl_mem_sptr cl_output,
-                                     bocl_mem_sptr lookup,
-                                     vcl_string data_type,
-                                     int  apptypesize,
-                                     bocl_mem_sptr prob_thresh );
+    static void swap_data_per_block(boxm2_scene_sptr scene,
+                                    const boxm2_block_id& id,
+                                    int numTrees,
+                                    boxm2_opencl_cache* ocl_cache,
+                                    cl_command_queue& queue,
+                                    BlockMemMap& sizebuffs,
+                                    BlockMemMap& blockCopies,
+                                    BlockMemMap& newDatas,
+                                    BlockIntMap& newDataSizes,
+                                    bocl_mem_sptr cl_output,
+                                    bocl_mem_sptr lookup,
+                                    vcl_string data_type,
+                                    int  apptypesize,
+                                    bocl_mem_sptr prob_thresh );
 
 
     //does in place, zero based cumulative sum on cpu, returns total size
     static int cumsum(int* buff, vcl_size_t len) {
       //non zero based cumsum
-      for (int i=1; i<len; ++i)
+      for (unsigned int i=1; i<len; ++i)
         buff[i] += buff[i-1];
       int newSize = buff[len-1];
       //zero based
@@ -60,7 +60,6 @@ class boxm2_multi_refine
       buff[0] = 0;
       return newSize;
     }
-
 
     //compile kernels and cache
     static bocl_kernel* get_refine_tree_kernel(bocl_device_sptr device, vcl_string opts);

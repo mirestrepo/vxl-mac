@@ -67,10 +67,24 @@ class boxm2_util
     //verifies that a scene has a valid appearance, spits out data type and appearance type size
     static bool verify_appearance(boxm2_scene& scene, const vcl_vector<vcl_string>&valid_types, vcl_string& data_type, int& appTypeSize );
 
+    static bool get_point_index(boxm2_scene_sptr& scene,
+                                boxm2_cache_sptr& cache,
+                                const vgl_point_3d<double>& point,
+                                boxm2_block_id& bid, int& data_index, float& side_len);
+
     static bool query_point(boxm2_scene_sptr& scene,
                             boxm2_cache_sptr& cache,
                             const vgl_point_3d<double>& point,
                             float& prob, float& intensity);
+    // Computes the order of the blocks spiraling from the curr_block.
+    static vcl_vector<boxm2_block_id> order_about_a_block(boxm2_scene_sptr scene, boxm2_block_id curr_block);
+
+    //: get blocks along a ray
+    static vcl_vector<boxm2_block_id> blocks_along_a_ray(boxm2_scene_sptr scene, vgl_point_3d<double> p0, vgl_point_3d<double> p1);
+
+    static bool get_raydirs_tfinal(vcl_string depthdir, vcl_string camsfile, vgl_point_3d<double> origin, 
+                                   vcl_vector<vil_image_view<float>*> & raydirs,
+                                   vcl_vector<vil_image_view<float>*> & tfinal,int scale);
 };
 
 #endif // boxm2_util_h

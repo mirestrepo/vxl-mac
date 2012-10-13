@@ -12,8 +12,7 @@
 #include <bocl/bocl_mem.h>
 #include <bocl/bocl_device.h>
 #include <bocl/bocl_kernel.h>
-#include <vil/vil_image_view_base.h>
-#include <vil/vil_save.h>
+#include <vil/vil_image_view.h>
 #include <vpgl/vpgl_perspective_camera.h>
 #include <vul/vul_timer.h>
 
@@ -24,20 +23,20 @@ vcl_map<vcl_string, vcl_vector<bocl_kernel*> > boxm2_multi_update_cell::kernels_
 //-------------------------------------------------------------
 // Stores seg len and observation in cell-level aux data
 //-------------------------------------------------------------
-float boxm2_multi_update_cell::update_cells(     boxm2_multi_cache&         cache,
-                                           const vil_image_view<float>&   img,
-                                                 vpgl_camera_double_sptr  cam,
-                                                 float*                   norm_image,
-                                                 boxm2_multi_update_helper& helper)
+float boxm2_multi_update_cell::update_cells(boxm2_multi_cache&           cache,
+                                            const vil_image_view<float>& img,
+                                            vpgl_camera_double_sptr      cam,
+                                            float*                       norm_image,
+                                            boxm2_multi_update_helper&   helper)
 {
   vcl_cout<<"  -- boxm2_multi_update_cell update cells --"<<vcl_endl;
   float transfer_time = 0.0f;
-  
+
   //verify appearance model
   vcl_size_t lthreads[2] = {8,8};
   vcl_string data_type, options;
   int apptypesize;
-  if( !boxm2_multi_util::get_scene_appearances(cache.get_scene(), data_type, options, apptypesize) )
+  if ( !boxm2_multi_util::get_scene_appearances(cache.get_scene(), data_type, options, apptypesize) )
     return 0.0f;
 
   //setup image size
@@ -62,7 +61,7 @@ float boxm2_multi_update_cell::update_cells(     boxm2_multi_cache&         cach
   vcl_size_t maxBlocks = helper.maxBlocks_;
   vcl_vector<boxm2_opencl_cache*>& ocl_caches = helper.vis_caches_;
   vcl_vector<bocl_mem_sptr> vis_mems, pre_mems, norm_mems;
-  for(int i=0; i<ocl_caches.size(); ++i) {
+  for (unsigned int i=0; i<ocl_caches.size(); ++i) {
     //grab sub scene and it's cache
     boxm2_opencl_cache* ocl_cache = ocl_caches[i];
     boxm2_scene_sptr    sub_scene = ocl_cache->get_scene();
@@ -89,11 +88,11 @@ float boxm2_multi_update_cell::update_cells(     boxm2_multi_cache&         cach
   // Call per block/per scene update (to ensure cpu-> gpu cache works
   //---------------------------------------------------------------
   vcl_vector<boxm2_multi_cache_group*> grp = helper.group_orders_; //cache.get_vis_groups(cam);
-  for (int grpId=0; grpId<grp.size(); ++grpId) {
+  for (unsigned int grpId=0; grpId<grp.size(); ++grpId) {
     boxm2_multi_cache_group& group = *grp[grpId];
     vcl_vector<boxm2_block_id>& ids = group.ids();
     vcl_vector<int> indices = group.order_from_cam(cam);
-    for (int idx=0; idx<indices.size(); ++idx){
+    for (unsigned int idx=0; idx<indices.size(); ++idx) {
       int i = indices[idx];
       //grab sub scene and it's cache
       boxm2_opencl_cache* ocl_cache = ocl_caches[i];
@@ -108,16 +107,16 @@ float boxm2_multi_update_cell::update_cells(     boxm2_multi_cache&         cach
       vis_mems[i]->write_to_gpu_mem(queues[i], group.get_vis(i), ni*nj*sizeof(float));
       pre_mems[i]->write_to_gpu_mem(queues[i], group.get_pre(i), ni*nj*sizeof(float));
       transfer_time += calc_beta_per_block(id, sub_scene, ocl_cache, queues[i], data_type, kerns[0],
-                          vis_mems[i], pre_mems[i], norm_mems[i], img_dims[i],
-                          ray_os[i], ray_ds[i], out_imgs[i], lookups[i],
-                          lthreads, gThreads);
+                                           vis_mems[i], pre_mems[i], norm_mems[i], img_dims[i],
+                                           ray_os[i], ray_ds[i], out_imgs[i], lookups[i],
+                                           lthreads, gThreads);
     }
 
     //finish queues before moving on (Maybe read in AUX 2 and 3 here)
-    for (int idx=0; idx<indices.size(); ++idx){
+    for (unsigned int idx=0; idx<indices.size(); ++idx) {
       int i = indices[idx];
       clFinish(queues[i]);
-      
+
      // vul_timer ttime; ttime.mark();
      // boxm2_opencl_cache* opencl_cache = ocl_caches[i];
      // boxm2_block_id id = ids[i];
@@ -147,7 +146,7 @@ float boxm2_multi_update_cell::update_cells(     boxm2_multi_cache&         cach
   //--------------------------------------
   //Clean up vis, pre, norm images buffers
   //--------------------------------------
-  for(int i=0; i<ocl_caches.size(); ++i) {
+  for (unsigned int i=0; i<ocl_caches.size(); ++i) {
     //grab sub scene and it's cache
     boxm2_opencl_cache* ocl_cache = ocl_caches[i];
     ocl_cache->unref_mem(vis_mems[i].ptr());
@@ -158,24 +157,23 @@ float boxm2_multi_update_cell::update_cells(     boxm2_multi_cache&         cach
 }
 
 
-
 //runs pre/vis on single block
 float boxm2_multi_update_cell::calc_beta_per_block(const boxm2_block_id&     id,
-                                                  boxm2_scene_sptr    scene,
-                                                  boxm2_opencl_cache* opencl_cache,
-                                                  cl_command_queue&   queue,
-                                                  vcl_string          data_type,
-                                                  bocl_kernel*        kern,
-                                                  bocl_mem_sptr&      vis_image,
-                                                  bocl_mem_sptr&      pre_image,
-                                                  bocl_mem_sptr&      norm_image,
-                                                  bocl_mem_sptr&      img_dim,
-                                                  bocl_mem_sptr&      ray_o_buff,
-                                                  bocl_mem_sptr&      ray_d_buff,
-                                                  bocl_mem_sptr&      cl_output,
-                                                  bocl_mem_sptr&      lookup,
-                                                  vcl_size_t*         lThreads,
-                                                  vcl_size_t*         gThreads)
+                                                   boxm2_scene_sptr    scene,
+                                                   boxm2_opencl_cache* opencl_cache,
+                                                   cl_command_queue&   queue,
+                                                   vcl_string          data_type,
+                                                   bocl_kernel*        kern,
+                                                   bocl_mem_sptr&      vis_image,
+                                                   bocl_mem_sptr&      pre_image,
+                                                   bocl_mem_sptr&      norm_image,
+                                                   bocl_mem_sptr&      img_dim,
+                                                   bocl_mem_sptr&      ray_o_buff,
+                                                   bocl_mem_sptr&      ray_d_buff,
+                                                   bocl_mem_sptr&      cl_output,
+                                                   bocl_mem_sptr&      lookup,
+                                                   vcl_size_t*         lThreads,
+                                                   vcl_size_t*         gThreads)
 {
   float transfer_time = 0.0f;
   vul_timer ttime; ttime.mark();
@@ -242,7 +240,7 @@ float boxm2_multi_update_cell::calc_beta_per_block(const boxm2_block_id&     id,
   //execute kernel
   kern->execute(queue, 2, lThreads, gThreads);
   kern->clear_args();
-  
+
   //async reads for aux2 and aux3
   //aux2->read_to_buffer(queue, false);
   //aux3->read_to_buffer(queue, false);
@@ -250,19 +248,17 @@ float boxm2_multi_update_cell::calc_beta_per_block(const boxm2_block_id&     id,
 }
 
 
-
-
 float boxm2_multi_update_cell::calc_beta_reduce( boxm2_multi_cache& mcache,
                                                  vpgl_camera_double_sptr cam,
                                                  boxm2_multi_update_helper& helper )
 {
   vul_timer ttime; ttime.mark();
-  float transfer_time = 0.0f; 
+  float transfer_time = 0.0f;
 
   //get total scene info first
   vcl_string data_type, options;
   int apptypesize;
-  if( !boxm2_multi_util::get_scene_appearances(mcache.get_scene(), data_type, options, apptypesize) )
+  if ( !boxm2_multi_util::get_scene_appearances(mcache.get_scene(), data_type, options, apptypesize) )
     return 0.0f;
 
   //use existing queues
@@ -274,11 +270,11 @@ float boxm2_multi_update_cell::calc_beta_reduce( boxm2_multi_cache& mcache,
 
   //Only bother updating the visible groups
   vcl_vector<boxm2_multi_cache_group*> grp = mcache.get_vis_groups(cam);
-  for (int grpId=0; grpId<grp.size(); ++grpId) {
+  for (unsigned int grpId=0; grpId<grp.size(); ++grpId) {
     boxm2_multi_cache_group& group = *grp[grpId];
     vcl_vector<boxm2_block_id>& ids = group.ids();
-    for (int i=0; i<ids.size(); ++i){
-      
+    for (unsigned int i=0; i<ids.size(); ++i) {
+
       ttime.mark();
       //grab sub scene and it's cache
       boxm2_opencl_cache* ocl_cache = ocl_caches[i];
@@ -334,7 +330,7 @@ float boxm2_multi_update_cell::calc_beta_reduce( boxm2_multi_cache& mcache,
       vcl_size_t local_threads[2]  = {64,1};
       vcl_size_t global_threads[2] = {RoundUp(info_buffer->data_buffer_length,local_threads[0]), 1};
 
-      //set args and exectue
+      //set args and execute
       kern->set_arg( blk_info );
       kern->set_arg( alpha );
       kern->set_arg( mog );
@@ -351,7 +347,7 @@ float boxm2_multi_update_cell::calc_beta_reduce( boxm2_multi_cache& mcache,
       //execute kernel
       kern->execute(queues[i], 2, local_threads, global_threads);
       kern->clear_args();
-    
+
       //async reads
       //alpha->read_to_buffer(queues[i], false);
       //mog->read_to_buffer(queues[i], false);
@@ -361,9 +357,9 @@ float boxm2_multi_update_cell::calc_beta_reduce( boxm2_multi_cache& mcache,
     //-------------------------------------------------
     //Finish this group before moving onto the next one
     //-------------------------------------------------
-    for (int i=0; i<ids.size(); ++i) {
+    for (unsigned int i=0; i<ids.size(); ++i) {
       clFinish(queues[i]);
-      
+
       //ttime.mark();
       //boxm2_opencl_cache* ocl_cache = ocl_caches[i];
       //boxm2_block_id id = ids[i];

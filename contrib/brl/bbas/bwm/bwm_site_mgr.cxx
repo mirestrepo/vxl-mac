@@ -16,6 +16,7 @@
 #include "video/bwm_video_cam_istream.h"
 #include <vpgl/vpgl_perspective_camera.h>
 #include <bpgl/algo/bpgl_project.h>
+#include <depth_map/depth_map_scene.h>
 #include <vgl/vgl_point_3d.h>
 #include <vgl/vgl_vector_3d.h>
 #include <vgl/vgl_box_3d.h>
@@ -24,15 +25,15 @@
 #include <vnl/vnl_quaternion.h>
 #include <vcl_cstdio.h>
 #include <vcl_sstream.h>
+
+#include <vul/vul_file.h>
+#include <vul/vul_string.h>
+#include <vgui/vgui_tableau_sptr.h>
+
 #ifdef WIN32
  #define _LIB
 #endif
 #include <expatpp.h> // for accessing methods in parent class of bwm_io_config_parser
-
-#include <vul/vul_file.h>
-#include <vul/vul_string.h>
-
-#include <vgui/vgui_tableau_sptr.h>
 
 bwm_site_mgr* bwm_site_mgr::instance_ = 0;
 
@@ -922,6 +923,7 @@ void bwm_site_mgr::load_cam_tableau()
   types.push_back("projective");
   types.push_back("perspective");
   types.push_back("identity");
+  types.push_back("geo");
   params.field("Tableau Name", name);
   params.line_break();
   params.dir("Image...", ext, img_file);
@@ -933,7 +935,7 @@ void bwm_site_mgr::load_cam_tableau()
   if (!params.ask())
     return;
 
-  if ((img_file == "") || (camera_type !=4 && (cam_file == ""))) {
+  if ((img_file == "") || (cam_file == "")) {
     vgui_dialog error ("Error");
     error.message ("Please specify an input file (prefix)." );
     error.ask();
@@ -956,9 +958,8 @@ void bwm_site_mgr::load_cam_tableau()
     cam_str = "perspective";
     break;
    case 4:
-    cam_str = "identity";
-    break;
-   default:
+    cam_str = "geo";
+    break;   default:
     cam_str = "unknown";
   }
 
@@ -1427,4 +1428,37 @@ void bwm_site_mgr::compute_3d_world_params()
   os.close();
   //restore camera stream state
   cam_istr->seek_camera(cam_number);
+}
+
+void bwm_site_mgr::load_depth_map_scene()
+{
+  vcl_string path = bwm_utils::select_file();
+  vcl_string dir = vul_file::dirname(path);
+  depth_map_scene scene;
+  vsl_b_ifstream is(path.c_str());
+  if (!is) {
+    vcl_cout << "invalid binary stream for path " << path << vcl_endl;
+    return;
+  }
+  scene.b_read(is);
+  vcl_string name = "depth_map";
+  vcl_string ifile = scene.image_path();
+  //just in case the user has an obsolete directory path
+  vcl_string temp = vul_file::strip_directory(ifile);
+  scene.set_image_path(temp);
+  vcl_string ipath = dir + '/' + temp;
+  bwm_io_tab_config* tab = new bwm_io_tab_config_cam(name, true, ipath , "not_needed" , "perspective");
+  active_tableaus_.push_back(tab);
+  bwm_tableau_img*  t = tableau_factory_.create_tableau(tab);
+  bwm_tableau_mgr::instance()->add_tableau(t, name);
+  bwm_tableau_cam* tc = reinterpret_cast<bwm_tableau_cam*>(t);
+  vpgl_camera<double>* cam = new vpgl_perspective_camera<double>(scene.cam());
+  tc->observer()->set_camera(cam, "");
+  tc->observer()->set_depth_map_scene(scene);
+  tc->observer()->display_depth_map_scene();
+}
+
+void bwm_site_mgr::save_depth_map_scene()
+{
+  vcl_cerr << "bwm_site_mgr::save_depth_map_scene() not yet implemented!!!\n";
 }

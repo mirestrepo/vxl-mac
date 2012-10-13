@@ -4,6 +4,7 @@
 
 #include "bwm_tableau_img.h"
 #include "bwm_tableau_rat_cam.h"
+#include "bwm_tableau_geo_cam.h"
 #include "bwm_tableau_generic_cam.h"
 #include "bwm_tableau_video.h"
 #include "bwm_command_macros.h"
@@ -71,7 +72,7 @@ void bwm_popup_menu::get_menu(vgui_menu &menu)
 
   submenu.add( "Save 2D Spatial Objects (binary)",
                new vgui_command_simple<bwm_tableau_img>(img_tab, &bwm_tableau_img::save_spatial_objects_2d));
-submenu.add( "Load 2D Spatial Objects (binary)",
+  submenu.add( "Load 2D Spatial Objects (binary)",
                new vgui_command_simple<bwm_tableau_img>(img_tab, &bwm_tableau_img::load_spatial_objects_2d));
   submenu.add( "Save Pointset 2D (ascii)",
                new vgui_command_simple<bwm_tableau_img>(img_tab,
@@ -185,10 +186,11 @@ submenu.add( "Load 2D Spatial Objects (binary)",
 
   // add more based on the tableau type
   // all camera tableau children will do the following menu items
-  if ((tab_->type_name().compare("bwm_tableau_proj_cam") == 0) ||
-      (tab_->type_name().compare("bwm_tableau_rat_cam") == 0)  ||
-      (tab_->type_name().compare("bwm_tableau_video") == 0)||
-       tab_->type_name().compare("bwm_tableau_generic_cam") == 0)
+  if (tab_->type_name().compare("bwm_tableau_proj_cam")    == 0 ||
+      tab_->type_name().compare("bwm_tableau_geo_cam")     == 0 ||
+      tab_->type_name().compare("bwm_tableau_rat_cam")     == 0 ||
+      tab_->type_name().compare("bwm_tableau_video")       == 0 ||
+      tab_->type_name().compare("bwm_tableau_generic_cam") == 0)
   {
     // 3D Objects menu
     bwm_tableau_cam* cam_tab = static_cast<bwm_tableau_cam* > (tab_.as_pointer());
@@ -315,15 +317,18 @@ submenu.add( "Load 2D Spatial Objects (binary)",
     menu.separator();
     menu.add("3D Objects", mesh_submenu);
     menu.separator();
-    // camera calibration submenu
-
     vgui_menu cal_submenu;
     cal_submenu.add("Set Focal Length(pix)", new vgui_command_simple<bwm_tableau_cam>(cam_tab, &bwm_tableau_cam::set_focal_length));
     cal_submenu.add("Set Camera Height (m)", new vgui_command_simple<bwm_tableau_cam>(cam_tab, &bwm_tableau_cam::set_cam_height));
     cal_submenu.add("Define Horizon(selected line)", new vgui_command_simple<bwm_tableau_cam>(cam_tab, &bwm_tableau_cam::set_horizon));
     cal_submenu.add("Calibrate From Horizon", new vgui_command_simple<bwm_tableau_cam>(cam_tab, &bwm_tableau_cam::calibrate_cam_from_horizon));
-    cal_submenu.add("Camera from KML", new vgui_command_simple<bwm_tableau_cam>(cam_tab, &bwm_tableau_cam::camera_from_kml));
     cal_submenu.add("Toggle Horizon", new vgui_command_simple<bwm_tableau_cam>(cam_tab, &bwm_tableau_cam::toggle_cam_horizon));
+    cal_submenu.separator();
+    cal_submenu.add("Set Ground Plane", new vgui_command_simple<bwm_tableau_cam>(cam_tab, &bwm_tableau_cam::set_ground_plane));
+    cal_submenu.add("Set Sky", new vgui_command_simple<bwm_tableau_cam>(cam_tab, &bwm_tableau_cam::set_sky));
+    cal_submenu.add("Add Vertical Region", new vgui_command_simple<bwm_tableau_cam>(cam_tab, &bwm_tableau_cam::add_vertical_depth_region));
+    cal_submenu.add("Edit Region Properties", new vgui_command_simple<bwm_tableau_cam>(cam_tab, &bwm_tableau_cam::edit_region_props));
+    cal_submenu.add("Save Depth Map Scene", new vgui_command_simple<bwm_tableau_cam>(cam_tab, &bwm_tableau_cam::save_depth_map_scene));
     menu.add("Camera Calibration", cal_submenu);
   // Registration menu
     vgui_menu reg_submenu, threed_menu;

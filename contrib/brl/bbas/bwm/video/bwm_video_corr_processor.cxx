@@ -294,12 +294,10 @@ interpolate_cameras(vcl_vector<vpgl_perspective_camera<double> > known_cams,
 
   //fill in the known cameras
   unsigned ne = unknown.size();
-  unsigned count = 0;
-  for (unsigned fi = 0; fi<ne; ++fi)
+  for (unsigned fi=0, count=0; fi<ne; ++fi)
     if (!unknown[fi])
       interp_cams[fi]=known_cams[count++];
   //then interpolate the missing cameras
-  count = 0;
   for (unsigned fi = 0; fi<ne; ++fi)
   {
     if (unknown[fi])//row is empty
@@ -925,7 +923,7 @@ bool bwm_video_corr_processor::refine_world_pts_and_cameras()
     if (!unknown_frames[f])
     {
       for (unsigned w = 0; w<npoints; ++w)
-        if (cmask[ff][w] = mask[f][w])
+        if ((cmask[ff][w] = mask[f][w])) // assignment, not a comparison!
           cimage_points.push_back(image_points[f*npoints + w]);
 
       if (!cam_istr_->seek_camera(f)){

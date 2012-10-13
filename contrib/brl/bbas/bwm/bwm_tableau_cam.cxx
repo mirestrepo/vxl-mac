@@ -19,6 +19,7 @@
 #include <vsol/vsol_polygon_3d_sptr.h>
 
 #include <vgui/vgui_dialog.h>
+#include <vgui/vgui_dialog_extensions.h>
 #include <vgui/vgui_viewer2D_tableau.h>
 #include <vgui/vgui_shell_tableau.h>
 
@@ -419,8 +420,10 @@ bool bwm_tableau_cam::handle(const vgui_event& e)
   }
  return bwm_tableau_img::handle(e);
 }
+
 // ======================   camera calibration methods =============
-void bwm_tableau_cam::set_focal_length(){
+void bwm_tableau_cam::set_focal_length()
+{
   static double focal_length = 3000.0;
   vgui_dialog fval("Set Focal Length");
   fval.field("Focal Length (pixel units)", focal_length);
@@ -428,7 +431,9 @@ void bwm_tableau_cam::set_focal_length(){
     return;
   my_observer_->set_focal_length(focal_length);
 }
-void bwm_tableau_cam::set_cam_height(){
+
+void bwm_tableau_cam::set_cam_height()
+{
   static double cam_height = 1.6;
   vgui_dialog hval("Set Camera Center Height");
   hval.field("Height (m)", cam_height);
@@ -436,25 +441,91 @@ void bwm_tableau_cam::set_cam_height(){
     return;
   my_observer_->set_cam_height(cam_height);
 }
-void bwm_tableau_cam::camera_from_kml(){
-  static double right_fov = 29.605;//degrees
-  static double top_fov = 17.725;//degrees
-  static double altitude = 1.6;//meters
-  static double heading = 0.0;//degrees
-  static double tilt = 78.62;//degrees
-  static double roll = -2.76;//degrees
-  vgui_dialog fval("KML Camera");
-  fval.field("RightFOV(deg)", right_fov);
-  fval.field("TopFOV(deg)", top_fov);
-  fval.field("Altitude(m)", altitude);
-  fval.field("Heading(deg)", heading);
-  fval.field("Tilt(deg)",tilt);
-  fval.field("Roll(deg)",roll);
-  if (!fval.ask())
+
+void bwm_tableau_cam::add_vertical_depth_region()
+{
+  static double min_depth = 0.0;
+  static double max_depth = 100.0;
+  static vcl_string name = "";
+  vgui_dialog vdval("Vertical Region");
+  vdval.field("Min Depth (m)", min_depth);
+  vdval.field("Max Depth (m)", max_depth);
+  vdval.field("Name ", name);
+  if (!vdval.ask())
     return;
-  my_observer_->camera_from_kml(right_fov, top_fov, altitude,
-                                heading, tilt, roll);
+  my_observer_->add_vertical_depth_region(min_depth, max_depth, name);
 }
 
-// Private Methods
+void bwm_tableau_cam::edit_region_props()
+{
+  vcl_vector<depth_map_region_sptr> regions = my_observer_->scene_regions();
+  // initialize region properties
+  static vcl_map<vcl_string, unsigned> depth_order;
+  static vcl_map<vcl_string, double> min_depth;
+  static vcl_map<vcl_string, double> max_depth;
+  static vcl_map<vcl_string, double> depth_inc;
+  static vcl_map<vcl_string, bool> active;;
+  // for padding to align fields
+  unsigned max_string_size = 0;
+  for (vcl_vector<depth_map_region_sptr>::iterator rit = regions.begin();
+       rit != regions.end(); ++rit) {
+    vcl_string name  = (*rit)->name();
+    if (name.size()>max_string_size)
+      max_string_size = name.size();
+    depth_order[name] = (*rit)->order();
+    min_depth[name]   = (*rit)->min_depth();
+    max_depth[name]   = (*rit)->max_depth();
+    depth_inc[name]   = (*rit)->depth_inc();
+    active[name]      = (*rit)->active();
+  }
+  vgui_dialog_extensions reg_dialog("Scene Region Editor");
+  vcl_vector<depth_map_region_sptr>::iterator gpit;
+  for (vcl_vector<depth_map_region_sptr>::iterator rit = regions.begin();
+       rit != regions.end(); ++rit) {
+    vcl_string temp = (*rit)->name();
+    // compute padding
+    int pad_cnt = max_string_size-temp.size();
+    for (int k = 0; k<pad_cnt; ++k)
+      temp += ' ';
+    reg_dialog.message(temp.c_str()) ;
+    if ((*rit)->name() == "sky" ) {
+      reg_dialog.line_break();
+      continue;
+    }
+    if ((*rit)->name() == "ground_plane" ) {
+      reg_dialog.field("MaxDepth", max_depth[(*rit)->name()]);
+      gpit = rit;
+      reg_dialog.line_break();
+      continue;
+    }
+    reg_dialog.field("Order", depth_order[(*rit)->name()]);
+    reg_dialog.field("MinDepth", min_depth[(*rit)->name()]);
+    reg_dialog.field("MaxDepth", max_depth[(*rit)->name()]);
+    reg_dialog.field("Depth Inc.", depth_inc[(*rit)->name()]);
+    reg_dialog.checkbox("Active", active[(*rit)->name()]);
+    reg_dialog.line_break();
+  }
+
+  if (!reg_dialog.ask())
+    return;
+  // update region properties
+  for (vcl_vector<depth_map_region_sptr>::iterator rit = regions.begin();
+       rit != regions.end(); ++rit) {
+    vcl_string name = (*rit)->name();
+    (*rit)->set_order(depth_order[name]);
+    (*rit)->set_min_depth(min_depth[name]);
+    (*rit)->set_max_depth(max_depth[name]);
+    (*rit)->set_depth_inc(depth_inc[name]);
+    (*rit)->set_active(active[name]);
+  }
+  my_observer_->set_ground_plane_max_depth();
+}
+
+void bwm_tableau_cam::save_depth_map_scene()
+{
+  vcl_string path = bwm_utils::select_file();
+  my_observer_->save_depth_map_scene(path);
+}
+
+
 

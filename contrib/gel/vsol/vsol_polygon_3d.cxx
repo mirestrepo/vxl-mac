@@ -14,6 +14,25 @@
 //***************************************************************************
 // Initialization
 //***************************************************************************
+void vsol_polygon_3d::compute_plane()
+{
+  vcl_vector<vgl_homg_point_3d<double> > pts;
+  for (vcl_vector<vsol_point_3d_sptr>::iterator pit = storage_->begin();
+       pit != storage_->end(); ++pit)
+    pts.push_back(vgl_homg_point_3d<double>((*pit)->x(),(*pit)->y(),(*pit)->z(),1.0));
+  vgl_fit_plane_3d<double> fp(pts);
+  fp.fit(0.1, &vcl_cerr);
+  plane_ = fp.get_plane();
+  plane_.normalize();
+}
+
+//----------------------------------------------------------------
+// Default constructor
+//----------------------------------------------------------------
+vsol_polygon_3d::vsol_polygon_3d()
+: storage_(0)
+{
+}
 
 //---------------------------------------------------------------------------
 //: Constructor from a vcl_vector (not a geometric vector but a list of points).
@@ -26,13 +45,7 @@ vsol_polygon_3d::vsol_polygon_3d(vcl_vector<vsol_point_3d_sptr> const& new_verti
   assert(valid_vertices(new_vertices));
 
   storage_=new vcl_vector<vsol_point_3d_sptr>(new_vertices);
-  vcl_vector<vgl_homg_point_3d<double> > pts;
-  for (vcl_vector<vsol_point_3d_sptr>::iterator pit = storage_->begin();
-       pit != storage_->end(); ++pit)
-    pts.push_back(vgl_homg_point_3d<double>((*pit)->x(),(*pit)->y(),(*pit)->z(),1.0));
-  vgl_fit_plane_3d<double> fp(pts);
-  fp.fit(0.1, &vcl_cerr);
-  plane_ = fp.get_plane();
+  this->compute_plane();
 }
 
 //---------------------------------------------------------------------------
@@ -226,7 +239,7 @@ bool vsol_polygon_3d::valid_vertices(const vcl_vector<vsol_point_3d_sptr> new_ve
   vgl_vector_3d<double> v2 (p2->x()-p0->x(),
                             p2->y()-p0->y(),
                             p2->z()-p0->z());
-  vgl_vector_3d<double> n = cross_product(v1,v2);// normal to the plane made by the vertices
+  vgl_vector_3d<double> n = normalized(cross_product(v1,v2));// normal to the plane made by the vertices
 
   for (unsigned int i=3;i<new_vertices.size();++i)
   {
@@ -238,7 +251,8 @@ bool vsol_polygon_3d::valid_vertices(const vcl_vector<vsol_point_3d_sptr> new_ve
     if (dot_product(n,v2)!=0)
       return false;
 #endif
-    if (vcl_fabs(dot_product(n,v2))>tol)
+    double dp = vcl_fabs(dot_product(n,v2));
+    if (dp>tol)
       return false;
   }
 
@@ -279,12 +293,6 @@ vgl_vector_3d<double> vsol_polygon_3d::normal() const
 // Implementation
 //***************************************************************************
 
-//---------------------------------------------------------------------------
-//: Default constructor. Do nothing. Just to enable inheritance.
-//---------------------------------------------------------------------------
-vsol_polygon_3d::vsol_polygon_3d(void)
-{
-}
 
 inline void vsol_polygon_3d::describe(vcl_ostream &strm, int blanking) const
 {
@@ -331,11 +339,12 @@ void vsol_polygon_3d::b_read(vsl_b_istream &is)
 
     delete storage_;
     storage_ = new vcl_vector<vsol_point_3d_sptr>();
-    bool null_ptr;
-    vsl_b_read(is, null_ptr);
-    if (!null_ptr)
+    bool valid_ptr;
+    vsl_b_read(is, valid_ptr);
+    if (!valid_ptr)
       return;
     vsl_b_read(is, *storage_);
+    this->compute_plane();
     break;
    default:
     vcl_cerr << "vsol_polygon_3d: unknown I/O version " << ver << '\n';
@@ -375,7 +384,8 @@ vsl_b_read(vsl_b_istream &is, vsol_polygon_3d* &p)
   bool not_null_ptr;
   vsl_b_read(is, not_null_ptr);
   if (not_null_ptr) {
-    p = new vsol_polygon_3d(vcl_vector<vsol_point_3d_sptr>());
+   // p = new vsol_polygon_3d(vcl_vector<vsol_point_3d_sptr>());
+    p = new vsol_polygon_3d();
     p->b_read(is);
   }
   else

@@ -5,18 +5,18 @@
 #include <vcl_sstream.h>
 
 //: PUBLIC create method, for creating singleton instance of boxm2_cache
-void boxm2_lru_cache::create(boxm2_scene_sptr scene)
+void boxm2_lru_cache::create(boxm2_scene_sptr scene, BOXM2_IO_FS_TYPE fs_type)
 {
   if (boxm2_cache::exists())
     vcl_cout << "boxm2_lru_cache:: boxm2_cache singleton already created" << vcl_endl;
   else {
-    instance_ = new boxm2_lru_cache(scene);
+    instance_ = new boxm2_lru_cache(scene, fs_type);
     destroyer_.set_singleton(instance_);
   }
 }
 
 //: constructor, set the directory path
-boxm2_lru_cache::boxm2_lru_cache(boxm2_scene_sptr scene) : boxm2_cache(scene)
+boxm2_lru_cache::boxm2_lru_cache(boxm2_scene_sptr scene, BOXM2_IO_FS_TYPE fs_type) : boxm2_cache(scene,fs_type)
 {
   scene_dir_ = scene->data_path();
 }
@@ -91,7 +91,7 @@ boxm2_block* boxm2_lru_cache::get_block(boxm2_block_id id)
   vcl_cout<<"Cache miss :("<<vcl_endl;
 #endif
   // otherwise load it from disk with blocking and update cache
-  boxm2_block* loaded = boxm2_sio_mgr::load_block(scene_dir_, id, data);
+  boxm2_block* loaded = boxm2_sio_mgr::load_block(scene_dir_, id, data, filesystem_);
 
   // if the block is null then initialize an empty one
   if (!loaded && scene_->block_exists(id)) {
@@ -123,7 +123,7 @@ boxm2_data_base* boxm2_lru_cache::get_data_base(boxm2_block_id id, vcl_string ty
   }
 
   // grab from disk
-  boxm2_data_base* loaded = boxm2_sio_mgr::load_block_data_generic(scene_dir_, id, type);
+  boxm2_data_base* loaded = boxm2_sio_mgr::load_block_data_generic(scene_dir_, id, type, filesystem_);
   boxm2_block_metadata data = scene_->get_block_metadata(id);
 
   // if num_bytes is greater than zero, then you're guaranteed to return a data size with that many bytes
@@ -146,7 +146,7 @@ boxm2_data_base* boxm2_lru_cache::get_data_base(boxm2_block_id id, vcl_string ty
   }
   else {
     // otherwise it's a miss, load sync from disk, update cache
-    // loaded = boxm2_sio_mgr::load_block_data_generic(scene_dir_, id, type);
+    // loaded = boxm2_sio_mgr::load_block_data_generic(scene_dir_, id, type, filesystem_);
     if (!loaded && scene_->block_exists(id)) {
       vcl_cout<<"boxm2_lru_cache::initializing empty data "<<id<<" type: "<<type<<vcl_endl;
       loaded = new boxm2_data_base(data, type, read_only);
