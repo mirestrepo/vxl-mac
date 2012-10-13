@@ -4,6 +4,7 @@
 IF(EXPAT_FOUND)
  IF(EXPATPP_FOUND)
   IF(SHAPELIB_FOUND)
+  INCLUDE_DIRECTORIES( ${VTHREEP_INCLUDE_DIR}/rply )
 
    ADD_EXECUTABLE( bwm_batch_project bwm_batch_project.cxx)
    TARGET_LINK_LIBRARIES( bwm_batch_project bwm bwm_algo vcl vgl vpgl vul)
