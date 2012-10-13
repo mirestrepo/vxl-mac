@@ -70,7 +70,7 @@ bool boxm2_ocl_update::update(boxm2_scene_sptr         scene,
 
   //cache size sanity check
   vcl_size_t binCache = opencl_cache.ptr()->bytes_in_cache();
-  vcl_cout<<"Update MBs in cache: "<<binCache/(1024.0*1024.0)<<vcl_endl;
+  vcl_cout<<"Starting: Update MBs in cache: "<<binCache/(1024.0*1024.0)<<vcl_endl;
 
   //make correct data types are here
   vcl_string data_type, num_obs_type,options;
@@ -439,6 +439,10 @@ bool boxm2_ocl_update::update(boxm2_scene_sptr         scene,
       pre_image->read_to_buffer(queue);
       cl_output->read_to_buffer(queue);
       clFinish(queue);
+      
+      binCache = opencl_cache.ptr()->bytes_in_cache();
+      vcl_cout<<"After processing block: " << *id << " Update MBs in cache: "<<binCache/(1024.0*1024.0)<<vcl_endl;
+
     }
   }
 
