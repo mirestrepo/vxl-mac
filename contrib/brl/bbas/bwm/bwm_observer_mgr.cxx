@@ -772,6 +772,8 @@ void bwm_observer_mgr::load_3d_corrs(vcl_string const& path,
   }
   unsigned n_corrs = 0;
   is >> n_corrs;
+  vcl_cout << "Number of correspondences: " << n_corrs <<vcl_endl;
+  
   for (unsigned i = 0; i<n_corrs; ++i) {
     is >> temp >> temp1 >> temp2;
     if (temp2!="Sites:") {
@@ -813,4 +815,6 @@ void bwm_observer_mgr::load_3d_corrs(vcl_string const& path,
     }
     corrs.push_back(corr);
   }
+  vcl_cout << "Number of correspondences: " << corrs.size() <<vcl_endl;
+
 }

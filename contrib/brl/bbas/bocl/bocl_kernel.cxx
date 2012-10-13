@@ -46,14 +46,16 @@ bool bocl_kernel::create_kernel(cl_context* context,
   //build cl_program object
   if ( !this->build_kernel_program(program_, options) ) {
     vcl_cerr<<"bocl_kernel::couldn't build program "<<id_<<'\n';
+    vcl_cout<<"BUILD ERROR: "<<this->build_log()<<vcl_endl;
     return false;
   }
+  
 
   //create cl_kernel object
   cl_int status = SDK_FAILURE;
   kernel_ = clCreateKernel(program_, kernel_name.c_str(), &status);
   if ( !check_val(status,CL_SUCCESS,error_to_string(status)) ) {
-    vcl_cerr<<"bocl_kernel:: couldn't build program "<<id_<<'\n';
+    vcl_cerr<<"bocl_kernel:: couldn't create kernel "<<id_<< ": " << error_to_string(status)<<vcl_endl;;
     return false;
   }
   //else
@@ -106,7 +108,7 @@ bool bocl_kernel::create_kernel(const cl_context& context,
   //create cl_kernel object
   kernel_ = clCreateKernel(program_, kernel_name.c_str(), &status);
   if ( !check_val(status,CL_SUCCESS,error_to_string(status)) ) {
-    vcl_cerr<<"bocl_kernel:: couldn't build program "<<id_<<'\n';
+    vcl_cerr<<"bocl_kernel:: couldn't create kernel "<<id_<< ": " << error_to_string(status)<<vcl_endl;;
     return false;
   }
   //else

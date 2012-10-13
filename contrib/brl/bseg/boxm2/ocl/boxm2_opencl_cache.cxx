@@ -62,7 +62,7 @@ bool boxm2_opencl_cache::clear_cache()
   for (blks=cached_blocks_.begin(); blks!=cached_blocks_.end(); ++blks)
   {
     bocl_mem* toDelete = blks->second;
-    toDelete->read_to_buffer( *queue_ );
+    //toDelete->read_to_buffer( *queue_ );
     bytesInCache_ -= toDelete->num_bytes();
 #ifdef DEBUG
     vcl_cout<<"Deleting block: "<<toDelete->id()<<"...size: "<<toDelete->num_bytes()<<vcl_endl;
@@ -80,7 +80,7 @@ bool boxm2_opencl_cache::clear_cache()
     for (data_blks=data_map.begin(); data_blks!=data_map.end(); ++data_blks)
     {
       bocl_mem* toDelete = data_blks->second;
-      toDelete->read_to_buffer( *queue_ );
+      //toDelete->read_to_buffer( *queue_ );
       bytesInCache_ -= toDelete->num_bytes();
       boxm2_block_id bid = data_blks->first;
 #ifdef DEBUG

@@ -103,6 +103,7 @@ bool boxm2_export_oriented_point_cloud_process (bprb_func_process& pro)
     boxm2_block_metadata blk_info= blk_iter->second;
     
     if (bb_filename.empty()){
+      vcl_cout << "Using block's bbox\n";
       original_bb = blk_info.bbox();
     }
     

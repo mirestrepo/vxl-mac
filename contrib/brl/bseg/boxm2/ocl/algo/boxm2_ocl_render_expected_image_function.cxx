@@ -61,12 +61,13 @@ float render_expected_image(  boxm2_scene_sptr & scene,
     // set arguments
     vcl_vector<boxm2_block_id> vis_order = scene->get_vis_blocks(cam);
     vcl_vector<boxm2_block_id>::iterator id;
+  
+    bocl_kernel* kern =  kernel;
     for (id = vis_order.begin(); id != vis_order.end(); ++id)
     {
         vcl_cout<<(*id);
         //choose correct render kernel
         boxm2_block_metadata mdata = scene->get_block_metadata(*id);
-        bocl_kernel* kern =  kernel;
 
         //write the image values to the buffer
         vul_timer transfer;
@@ -98,13 +99,15 @@ float render_expected_image(  boxm2_scene_sptr & scene,
 
         //execute kernel
         kern->execute(queue, 2, lthreads, gThreads);
-        clFinish(queue);
-        gpu_time += kern->exec_time();
 
         //clear render kernel args so it can reset em on next execution
         kern->clear_args();
     }
+  
+    clFinish(queue);
+    gpu_time = kern->exec_time();
 
+  
     //clean up cam
     delete[] ray_origins;
     delete[] ray_directions;

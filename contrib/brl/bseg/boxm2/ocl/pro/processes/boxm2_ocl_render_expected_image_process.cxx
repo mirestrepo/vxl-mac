@@ -158,7 +158,7 @@ bool boxm2_ocl_render_expected_image_process(bprb_func_process& pro)
     }
   }
   if (!foundDataType) {
-    vcl_cout<<"BOXM2_OCL_RENDER_PROCESS ERROR: scene doesn't have BOXM2_MOG3_GREY or BOXM2_MOG3_GREY_16 data type"<<vcl_endl;
+    vcl_cout<<"BOXM2_OCL_RENDER_PROCESS ERROR: scene doesn't have BOXM2_MOG3_GREY or BOXM2_MOG3_GREY_16 data type \nDatatype is: " << boxm2_data_traits<BOXM2_FLOAT8>::prefix() <<vcl_endl;
     return false;
   }
   if (ident.size() > 0) {
@@ -246,7 +246,11 @@ bool boxm2_ocl_render_expected_image_process(bprb_func_process& pro)
   opencl_cache->unref_mem(vis_image.ptr());
   opencl_cache->unref_mem(exp_image.ptr());
 
+  //clear the cache
+  opencl_cache->clear_cache();
+  //release queue
   clReleaseCommandQueue(queue);
+  
   i=0;
   // store scene smaprt pointer
   pro.set_output_val<vil_image_view_base_sptr>(i++, exp_img_out);

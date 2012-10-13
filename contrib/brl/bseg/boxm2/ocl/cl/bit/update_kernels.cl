@@ -117,8 +117,8 @@ typedef struct
   __global int* mean_obs;
            float* vis_inf;
            float* pre_inf;
-           float phi;
            float4 viewdir;
+           float phi;
    __constant RenderSceneInfo * linfo;
 } AuxArgs;
 
@@ -253,8 +253,8 @@ typedef struct
   __local  short2* ray_bundle_array;
   __local  int*    cell_ptrs;
   __local  float*  cached_vis;
-           float phi;
            float4 viewdir;
+           float phi;
   __constant RenderSceneInfo * linfo;
 } AuxArgs;
 
@@ -441,7 +441,7 @@ update_bit_scene_main(__global RenderSceneInfo  * info,
       float cell_beta = convert_float(beta_int) / (convert_float(len_int)* info->block_len);
       float4 aux_data = (float4) (cum_len, mean_obs, cell_beta, cell_vis);
       float4 nobs     = convert_float4(nobs_array[gid]);
-      CONVERT_FUNC_FLOAT8(mixture,mixture_array[gid])/NORM;
+      CONVERT_FUNC_FLOAT8(mixture,mixture_array[gid])/(float)NORM;
       float16 data = (float16) (alpha,
                                  (mixture.s0), (mixture.s1), (mixture.s2), (nobs.s0),
                                  (mixture.s3), (mixture.s4), (mixture.s5), (nobs.s1),
@@ -512,7 +512,7 @@ update_mog3_main(__global RenderSceneInfo  * info,
           float cell_vis  = convert_float(vis_int) / convert_float(len_int);
 
           float4 nobs     = convert_float4(nobs_array[gid]);
-          CONVERT_FUNC_FLOAT8(mixture,mixture_array[gid])/NORM;
+          CONVERT_FUNC_FLOAT8(mixture,mixture_array[gid])/(float)NORM;
 
           float mu0 = mixture.s0, sigma0 = mixture.s1, w0 = mixture.s2;
           float mu1 = mixture.s3, sigma1 = mixture.s4, w1 = mixture.s5;

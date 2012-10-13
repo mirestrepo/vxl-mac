@@ -123,8 +123,6 @@ bool boxm2_ocl_kernel_vector_filter_process_globals::process(bocl_device_sptr de
     vcl_map<boxm2_block_id, boxm2_block_metadata>::iterator blk_iter;
     for (blk_iter = blocks.begin(); blk_iter != blocks.end(); ++blk_iter)
     {
-      //clear cache
-      opencl_cache->clear_cache();
       boxm2_block_metadata data = blk_iter->second;
       boxm2_block_id id = blk_iter->first;
 
@@ -146,7 +144,7 @@ bool boxm2_ocl_kernel_vector_filter_process_globals::process(bocl_device_sptr de
       bocl_mem* blk_info = opencl_cache->loaded_block_info();
 
       //set workspace
-      vcl_size_t lThreads[] = {4, 4, 4};
+      vcl_size_t lThreads[] = {4,4,4};
       vcl_size_t gThreads[] = { RoundUp(data.sub_block_num_.x(), lThreads[0]),
         RoundUp(data.sub_block_num_.y(), lThreads[1]),
         RoundUp(data.sub_block_num_.z(), lThreads[2]) };
@@ -186,10 +184,13 @@ bool boxm2_ocl_kernel_vector_filter_process_globals::process(bocl_device_sptr de
         return false;
 
       //shallow remove from ocl cache unnecessary items from ocl cache.
+      binCache = opencl_cache.ptr()->bytes_in_cache();
       vcl_cout<<"Filtering: After execute MBs in cache: "<<binCache/(1024.0*1024.0)<<vcl_endl;
       opencl_cache->shallow_remove_data(id,boxm2_data_traits<BOXM2_FLOAT>::prefix(filter_ident.str()));
+      opencl_cache->shallow_remove_data(id,boxm2_data_traits<BOXM2_ALPHA>::prefix());
     }  //end block iter for
 
+    //delete filter buffer
     delete [] filter_coeff;
     delete filter_buffer;
     vcl_cout<<"For filter: " << filter_ident.str() << "gpu_time:  " << gpu_time << " ms" <<vcl_endl;

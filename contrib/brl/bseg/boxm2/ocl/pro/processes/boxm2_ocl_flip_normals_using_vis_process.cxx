@@ -114,7 +114,7 @@ bool boxm2_ocl_flip_normals_using_vis_process(bprb_func_process& pro)
 
   //cache size sanity check
   long binCache = opencl_cache.ptr()->bytes_in_cache();
-  vcl_cout<<"Update MBs in cache: "<<binCache/(1024.0*1024.0)<<vcl_endl;
+  vcl_cout<<"Flip Normals:  MBs in cache: "<<binCache/(1024.0*1024.0)<<vcl_endl;
 
   //make correct data types are here
   bool foundDataType = false, foundNumObsType = false;
@@ -252,11 +252,20 @@ bool boxm2_ocl_flip_normals_using_vis_process(bprb_func_process& pro)
               kern->set_local_arg( local_threads[0]*local_threads[1]*sizeof(cl_uchar16) );//local tree,
               kern->set_local_arg( local_threads[0]*local_threads[1]*10*sizeof(cl_uchar) ); //cumsum buffer, imindex buffer
 
+              binCache = opencl_cache.ptr()->bytes_in_cache();
+              vcl_cout<<"Compute Vis:  MBs in cache: "<<binCache/(1024.0*1024.0)<<vcl_endl;
+              
               //execute kernel
               kern->execute(queue, 2, local_threads, global_threads);
               int status = clFinish(queue);
-              check_val(status, MEM_FAILURE, "VISIBIITY EXECUTE FAILED: " + error_to_string(status));
+              if(!check_val(status, MEM_FAILURE, "VISIBIITY EXECUTE FAILED: " + error_to_string(status)))
+              {
+                vcl_cerr << "Quitting" << vcl_endl;
+                return false;
+              }
               gpu_time += kern->exec_time();
+              
+              
 
               //clear render kernel args so it can reset em on next execution
               kern->clear_args();
@@ -265,8 +274,11 @@ bool boxm2_ocl_flip_normals_using_vis_process(bprb_func_process& pro)
           //read from gpu
           vis_sphere->read_to_buffer(queue);
           int status = clFinish(queue);
-          check_val(status, MEM_FAILURE, "READ VIS_SPHERE FAILED: " + error_to_string(status));
-        }
+          if(! check_val(status, MEM_FAILURE, "READ VIS_SPHERE FAILED: " + error_to_string(status)))
+          {
+            vcl_cerr << "Quitting" << vcl_endl;
+            return false;
+          }        }
         else if (i == DECIDE_NORMAL) {
           transfer.mark();
 
@@ -283,9 +295,11 @@ bool boxm2_ocl_flip_normals_using_vis_process(bprb_func_process& pro)
           bocl_mem* vis_sphere = opencl_cache->get_data<BOXM2_VIS_SPHERE>(blk_iter->first,0,false);
 
           //array to store final visibility score of a point
-          bocl_mem* vis   = opencl_cache->get_data<BOXM2_VIS_SCORE>(blk_iter->first, (normals->num_bytes()/normalsTypeSize)
-                                                  *boxm2_data_info::datasize(boxm2_data_traits<BOXM2_VIS_SCORE>::prefix()),false);
-
+          
+//          bocl_mem* vis   = opencl_cache->get_data<BOXM2_VIS_SCORE>(blk_iter->first, (normals->num_bytes()/normalsTypeSize)
+//                                                  *boxm2_data_info::datasize(boxm2_data_traits<BOXM2_VIS_SCORE>::prefix()),false);
+          vcl_size_t visTypeSize = boxm2_data_info::datasize(boxm2_data_traits<BOXM2_VIS_SCORE>::prefix());
+          bocl_mem* vis = opencl_cache->get_data_new<BOXM2_VIS_SCORE>(blk_iter->first, (normals->num_bytes()/normalsTypeSize)*visTypeSize, false);
           transfer_time += (float) transfer.all();
 
           local_threads[0] = 128;
@@ -302,21 +316,30 @@ bool boxm2_ocl_flip_normals_using_vis_process(bprb_func_process& pro)
           //execute kernel
           kern->execute(queue, 2, local_threads, global_threads);
           int status = clFinish(queue);
-          check_val(status, MEM_FAILURE, "DECIDE NORMAL DIR EXECUTE FAILED: " + error_to_string(status));
-          gpu_time += kern->exec_time();
+          if(!check_val(status, MEM_FAILURE, "DECIDE NORMAL DIR EXECUTE FAILED: " + error_to_string(status)))
+          {
+            vcl_cerr << "Quitting" << vcl_endl;
+            return false;
+          }          gpu_time += kern->exec_time();
 
           //read normals and vis from gpu
           normals->read_to_buffer(queue);
           vis->read_to_buffer(queue);
           status = clFinish(queue);
-          check_val(status, MEM_FAILURE, "READ NORMALS FAILED: " + error_to_string(status));
+          if(!check_val(status, MEM_FAILURE, "READ NORMALS FAILED: " + error_to_string(status)))
+          {
+            vcl_cerr << "Quitting" << vcl_endl;
+            return false;
+          }
 
           //clear render kernel args so it can reset em on next execution
           kern->clear_args();
       }
 
-      //shallow remove from ocl cache unnecessary items from ocl cache.
-      opencl_cache->shallow_remove_data(id,boxm2_data_traits<BOXM2_VIS_SPHERE>::prefix());
+        //shallow remove from ocl cache unnecessary items from ocl cache.
+        opencl_cache->shallow_remove_data(id,boxm2_data_traits<BOXM2_VIS_SPHERE>::prefix());
+        opencl_cache->shallow_remove_data(id,boxm2_data_traits<BOXM2_VIS_SCORE>::prefix());
+
     }
   }
 
