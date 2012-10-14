@@ -219,10 +219,23 @@ bool boxm2_ocl_aggregate_normal_from_filter_vector_process(bprb_func_process& pr
     //clear render kernel args so it can reset em on next execution
     kern->clear_args();
 
-    //read normals and vis from gpu
-    normals->read_to_buffer(queue);
-    status = clFinish(queue);
+    status = clFinish(queue);    
     check_val(status, MEM_FAILURE, "READ NORMALS FAILED: " + error_to_string(status));
+   
+    //read normals from gpu
+    normals->read_to_buffer(queue);
+    
+    //shallow remove from ocl cache unnecessary items from ocl cache.
+    binCache = opencl_cache.ptr()->bytes_in_cache();
+    vcl_cout<<"Aggregating: MBs in cache: "<<binCache/(1024.0*1024.0)<<vcl_endl;
+    opencl_cache->shallow_remove_data(id,boxm2_data_traits<BOXM2_NORMAL>::prefix());
+    opencl_cache->shallow_remove_data(id,boxm2_data_traits<BOXM2_ALPHA>::prefix());
+    for (unsigned i = 0; i < num_filters; i++) {
+      bvpl_kernel_sptr filter = filter_vector->kernels_[i];
+      vcl_stringstream filter_ident; filter_ident << filter->name() << '_' << filter->id();
+      opencl_cache->shallow_remove_data(id,RESPONSE_DATATYPE::prefix(filter_ident.str()));
+    }
+    
   }
 
   vcl_cout<<"Gpu time "<<gpu_time<<" transfer time "<<transfer_time<<vcl_endl;
