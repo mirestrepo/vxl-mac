@@ -1,6 +1,8 @@
 from boxm2_register import boxm2_batch, dbvalue; 
 import os
 
+boxm2_batch.verbose();
+
 #############################################################################
 # PROVIDES higher level python functions to make boxm2_batch 
 # code more readable/refactored
