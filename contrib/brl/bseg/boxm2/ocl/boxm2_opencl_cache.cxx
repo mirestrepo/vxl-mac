@@ -9,8 +9,9 @@ boxm2_opencl_cache::boxm2_opencl_cache(boxm2_scene_sptr scene,
 : scene_(scene), maxBlocksInCache(maxBlocks), bytesInCache_(0), block_info_(0), device_(device)
 {
   // store max bytes allowed in cache - use only 80 percent of the memory
-  maxBytesInCache_ = (unsigned long) (device->info().total_global_memory_ * .7);
-
+  maxBytesInCache_ = (unsigned long) (device->info().total_global_memory_ * 0.8);
+  
+  vcl_cout << "Max BMbytes allowed: " << maxBytesInCache_/(1024.0*1024.0) << vcl_endl;
   // by default try to create an LRU cache
   boxm2_lru_cache::create(scene);
   cpu_cache_ = boxm2_cache::instance();

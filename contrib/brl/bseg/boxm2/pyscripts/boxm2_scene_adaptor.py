@@ -6,6 +6,9 @@ from vpgl_adaptor import *;
 from os.path import basename, splitext
 import sys
 
+
+boxm2_batch.verbose();
+
 #############################################################################
 # boxm2_scene_adaptor class offers super simple model manipulation syntax
 # you can always force the process to use CPP by just passing in "cpp" as the last

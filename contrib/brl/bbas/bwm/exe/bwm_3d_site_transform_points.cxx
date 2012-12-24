@@ -149,15 +149,15 @@ int main(int argc, char** argv)
 {
   //Get Inputs
   vul_arg<vcl_string> corrs_path   ("-corrs", "corr input file",  "");
-
   vul_arg<vcl_string> input_path ("-input_path","directory to get .ply files containing the points","");
   vul_arg<vcl_string> output_path ("-output_path","directory to store transformed points", "");
+  vul_arg<vcl_string> tform_path ("-transform_path","file to save the transformation file (don't add extension)", "");
   vul_arg<vcl_string> pts0_path ("-pts0_path","file to save the first points as .ply", "");
   vul_arg<vcl_string> pts1_path ("-pts1_path","file to save the sceond points as .ply", "");
 
 
-  if (argc < 7) {
-    vcl_cout << "usage: bwm_3d_site_transform -corrs <corr file> -in_point_dir <dir> -out_point_dir <dir>\n";
+  if (argc < 9) {
+    vcl_cout << "usage: bwm_3d_site_transform -corrs <corr file> -in_point_dir <dir> -out_point_dir <dir> -transform_path <tfrom path>\n";
     return -1;
   }
 
@@ -187,11 +187,38 @@ int main(int argc, char** argv)
   vgl_rotation_3d<double> R;
   vnl_vector_fixed<double, 3> t;
   double scale;
-  if (!compute_similarity(pts1, pts0, R, t, scale)) {
+  if (!compute_similarity(pts0, pts1, R, t, scale)) {
     vcl_cout << "similarity computation failed\n";
     return -1;
   }
+  
+  //save the transformation
   vcl_cout << "scale = " << scale << "\nR = " << R << "\nt = " << t << vcl_endl;
+  
+  vcl_string srt_tfile = tform_path() + ".txt";
+  vcl_cout << "Saving file: " << srt_tfile <<vcl_endl;
+
+  vcl_ofstream srt_ofs(srt_tfile.c_str());
+  srt_ofs << scale << "\n" << R << "\n" << t << "\n";
+  srt_ofs.close();
+  
+  vcl_string mat_tfile = tform_path() + "_matrix.txt";
+  vcl_ofstream mat_ofs(mat_tfile.c_str());
+  vnl_matrix_fixed<double, 4, 4 > S;
+  S.set_identity();
+  S.update(scale * vnl_matrix_fixed<double, 3, 3 >(S.extract(3,3)));
+  vcl_cout << "Scale:\n" << S << "\n";
+  vnl_matrix_fixed<double, 4, 4 > RT;
+  RT.set_identity();
+  RT.update(R.as_matrix());
+  RT.set_column(3, t);
+  vcl_cout << "RT:\n" << RT << "\n";
+  vnl_matrix_fixed<double, 4, 4 > Tmat = S*RT;
+  mat_ofs << Tmat;
+  mat_ofs.close();
+
+   
+  srt_ofs.close();
   
   //transform the points
   if (vul_file::is_directory(input_path().c_str())){

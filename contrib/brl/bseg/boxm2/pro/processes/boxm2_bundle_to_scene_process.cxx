@@ -91,7 +91,7 @@ bool boxm2_bundle_to_scene_process(bprb_func_process& pro)
   //run cams and bounding box to rscene/uscene
   //----------------------------------------------------------------------------
   //create update scene
-  vcl_string scene_dir = "model";
+  vcl_string scene_dir = out_dir + "/model";
   if (!vul_file::make_directory_path( scene_dir.c_str()))
     return false;
   boxm2_scene_sptr uscene = new boxm2_scene(scene_dir, bbox.min_point());

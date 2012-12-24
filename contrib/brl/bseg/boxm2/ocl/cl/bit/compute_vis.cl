@@ -98,7 +98,7 @@ compute_vis(__constant  uint               * datasize_points,
           
           //loop thru directions          
           bool start;
-          float vis;
+//          float vis;
           for (unsigned int i = 0; i < 12; i++)
           {
             
@@ -106,7 +106,7 @@ compute_vis(__constant  uint               * datasize_points,
             start = !contain_point[0];
             
             
-            vis = private_vis[i];
+//            vis = private_vis[i];
             aux_args.visibility = &(private_vis[i]);
             aux_args.start = &start;
 
@@ -117,32 +117,32 @@ compute_vis(__constant  uint               * datasize_points,
                       ray_ox, ray_oy, ray_oz,
                       ray_dx, ray_dy, ray_dz,
                       linfo, tree_array,                               //scene info
-                      local_tree, bit_lookup, cumsum, &vis, aux_args);   //utility info
+                      local_tree, bit_lookup, cumsum, &(private_vis[i]), aux_args);   //utility info
                       
             
             //zip thru aux rays    
-            create_aux_rays(directions[i],aux_rays);
-            for(unsigned  j = 0; j < 4; j++) 
-            {
-                start = !contain_point[0];
-                
-                vis_of_aux_rays[j] = vis;
-                aux_args.visibility = &(vis_of_aux_rays[j]);
-                aux_args.start = &start;
-
-                calc_scene_ray_generic_cam(linfo, ray_o, aux_rays[j], &ray_ox, &ray_oy, &ray_oz, &ray_dx, &ray_dy, &ray_dz);
-
-                //shoot ray
-                cast_ray( 1, 1,
-                      ray_ox, ray_oy, ray_oz,
-                      ray_dx, ray_dy, ray_dz,
-                      linfo, tree_array,                                 //scene info
-                      local_tree, bit_lookup, cumsum, &vis, aux_args);   //utility info
-            }
-            //pick the median of sorted rays
-            vis_of_aux_rays[4] = private_vis[i];
-            sort_vector( vis_of_aux_rays, 5);
-            private_vis[i] = vis_of_aux_rays[2];
+//            create_aux_rays(directions[i],aux_rays);
+//            for(unsigned  j = 0; j < 4; j++) 
+//            {
+//                start = !contain_point[0];
+//                
+//                vis_of_aux_rays[j] = vis;
+//                aux_args.visibility = &(vis_of_aux_rays[j]);
+//                aux_args.start = &start;
+//
+//                calc_scene_ray_generic_cam(linfo, ray_o, aux_rays[j], &ray_ox, &ray_oy, &ray_oz, &ray_dx, &ray_dy, &ray_dz);
+//
+//                //shoot ray
+//                cast_ray( 1, 1,
+//                      ray_ox, ray_oy, ray_oz,
+//                      ray_dx, ray_dy, ray_dz,
+//                      linfo, tree_array,                                 //scene info
+//                      local_tree, bit_lookup, cumsum, &vis, aux_args);   //utility info
+//            }
+//            //pick the median of sorted rays
+//            vis_of_aux_rays[4] = private_vis[i];
+//            sort_vector( vis_of_aux_rays, 5);
+//            private_vis[i] = vis_of_aux_rays[2];
             
           }
 

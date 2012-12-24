@@ -141,61 +141,54 @@ bool boxm2_ocl_flip_normals_using_vis_process(bprb_func_process& pro)
     kernels[identifier]=ks;
   }
 
-  // bit lookup buffer
-  cl_uchar lookup_arr[256];
-  boxm2_ocl_util::set_bit_lookup(lookup_arr);
-  bocl_mem_sptr lookup=new bocl_mem(device->context(), lookup_arr, sizeof(cl_uchar)*256, "bit lookup buffer");
-  lookup->create_buffer(CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR);
-
-  // dodecahedron directions lookup buffer
-  cl_float4 dodecahedron_dir[12];
-  boxm2_ocl_util::set_dodecahedron_dir_lookup(dodecahedron_dir);
-  bocl_mem_sptr dodecahedron_dir_lookup=new bocl_mem(device->context(), dodecahedron_dir, sizeof(cl_float4)*12, "dodecahedron directions lookup buffer");
-  dodecahedron_dir_lookup->create_buffer(CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR);
-
-  cl_bool contain_point[1];
-  bocl_mem_sptr contain_point_mem =new bocl_mem(device->context(), contain_point, sizeof(cl_bool), "contains point buffer");
-  contain_point_mem->create_buffer(CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR);
-
-  cl_uint datasize[1];
-  bocl_mem_sptr datasize_mem =new bocl_mem(device->context(), datasize, sizeof(cl_uint), "data buffer size");
-  datasize_mem->create_buffer(CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR);
-
+  
   //zip through each block
   vcl_map<boxm2_block_id, boxm2_block_metadata> blocks = scene->blocks();
   vcl_map<boxm2_block_id, boxm2_block_metadata>::iterator blk_iter;
   for (unsigned int i=0; i<kernels[identifier].size(); ++i)
   {
-      //remove all the alphas and points from opencl cache
-      if (i == DECIDE_NORMAL) {
+
+       if (i==COMPUTE_VIS) {
+         
+         // bit lookup buffer
+         cl_uchar lookup_arr[256];
+         boxm2_ocl_util::set_bit_lookup(lookup_arr);
+         bocl_mem_sptr lookup=new bocl_mem(device->context(), lookup_arr, sizeof(cl_uchar)*256, "bit lookup buffer");
+         lookup->create_buffer(CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR);
+         
+         // dodecahedron directions lookup buffer
+         cl_float4 dodecahedron_dir[12];
+         boxm2_ocl_util::set_dodecahedron_dir_lookup(dodecahedron_dir);
+         bocl_mem_sptr dodecahedron_dir_lookup=new bocl_mem(device->context(), dodecahedron_dir, sizeof(cl_float4)*12, "dodecahedron directions lookup buffer");
+         dodecahedron_dir_lookup->create_buffer(CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR);
+         
+         cl_bool contain_point[1];
+         bocl_mem_sptr contain_point_mem =new bocl_mem(device->context(), contain_point, sizeof(cl_bool), "contains point buffer");
+         contain_point_mem->create_buffer(CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR);
+         
+         cl_uint datasize[1];
+         bocl_mem_sptr datasize_mem =new bocl_mem(device->context(), datasize, sizeof(cl_uint), "data buffer size");
+         datasize_mem->create_buffer(CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR);
+          
           for (blk_iter = blocks.begin(); blk_iter != blocks.end(); ++blk_iter)
           {
             boxm2_block_id id = blk_iter->first;
-            opencl_cache->shallow_remove_data(id,boxm2_data_traits<BOXM2_ALPHA>::prefix());
-            opencl_cache->shallow_remove_data(id,boxm2_data_traits<BOXM2_POINT>::prefix());
-          }
-      }
-
-      for (blk_iter = blocks.begin(); blk_iter != blocks.end(); ++blk_iter)
-      {
-        boxm2_block_id id = blk_iter->first;
-        vcl_cout << "Processing block: " << id << vcl_endl;
-
-        //get kernel
-        bocl_kernel* kern =  kernels[identifier][i];
-
-        vul_timer transfer;
-
-        //load normals
-        bocl_mem* normals = opencl_cache->get_data<BOXM2_NORMAL>(blk_iter->first,0,false);
-        vcl_size_t normalsTypeSize = boxm2_data_info::datasize(boxm2_data_traits<BOXM2_NORMAL>::prefix());
-
-        //load block info
-        datasize[0] = (unsigned)(normals->num_bytes()/normalsTypeSize);
-        datasize_mem->write_to_buffer((queue));
-
-        transfer_time += (float) transfer.all();
-        if (i==COMPUTE_VIS) {
+            vcl_cout << "Processing block: " << id << vcl_endl;
+            
+            //get kernel
+            bocl_kernel* kern =  kernels[identifier][i];
+            
+            vul_timer transfer;
+            
+            //load normals
+            bocl_mem* normals = opencl_cache->get_data<BOXM2_NORMAL>(blk_iter->first,0,false);
+            vcl_size_t normalsTypeSize = boxm2_data_info::datasize(boxm2_data_traits<BOXM2_NORMAL>::prefix());
+            
+            //load block info
+            datasize[0] = (unsigned)(normals->num_bytes()/normalsTypeSize);
+            datasize_mem->write_to_buffer((queue));
+            
+            transfer_time += (float) transfer.all();
 
             //array to store visibilities computed around a sphere
             //ask for a new BOXM2_VIS_SPHERE data so that it gets initialized properly.
@@ -204,7 +197,8 @@ bool boxm2_ocl_flip_normals_using_vis_process(bprb_func_process& pro)
 
             //zip through each block
             vcl_map<boxm2_block_id, boxm2_block_metadata>::iterator blk_iter_inner;
-            for (blk_iter_inner = blocks.begin(); blk_iter_inner != blocks.end(); ++blk_iter_inner) {
+            for (blk_iter_inner = blocks.begin(); blk_iter_inner != blocks.end(); ++blk_iter_inner)
+            {
 
               transfer.mark();
               boxm2_block_id id_inner = blk_iter_inner->first;
@@ -267,80 +261,119 @@ bool boxm2_ocl_flip_normals_using_vis_process(bprb_func_process& pro)
               //clear render kernel args so it can reset em on next execution
               kern->clear_args();
             }
-
-          //read from gpu
-          vis_sphere->read_to_buffer(queue);
-          int status = clFinish(queue);
-          if(! check_val(status, MEM_FAILURE, "READ VIS_SPHERE FAILED: " + error_to_string(status)))
-          {
-            vcl_cerr << "Quitting" << vcl_endl;
-            return false;
-          }        }
-        else if (i == DECIDE_NORMAL) {
-          transfer.mark();
-
-          //load tree
-          boxm2_block_metadata mdata = blk_iter->second;
-          vul_timer transfer;
-          bocl_mem* blk       = opencl_cache->get_block(blk_iter->first);
-          bocl_mem* blk_info  = opencl_cache->loaded_block_info();
-          boxm2_scene_info* info_buffer = (boxm2_scene_info*) blk_info->cpu_buffer();
-          info_buffer->data_buffer_length = (int) (normals->num_bytes()/normalsTypeSize);
-          blk_info->write_to_buffer((queue));
-
-          //load visibilities
-          bocl_mem* vis_sphere = opencl_cache->get_data<BOXM2_VIS_SPHERE>(blk_iter->first,0,false);
-
-          //array to store final visibility score of a point
-          
-//          bocl_mem* vis   = opencl_cache->get_data<BOXM2_VIS_SCORE>(blk_iter->first, (normals->num_bytes()/normalsTypeSize)
-//                                                  *boxm2_data_info::datasize(boxm2_data_traits<BOXM2_VIS_SCORE>::prefix()),false);
-          vcl_size_t visTypeSize = boxm2_data_info::datasize(boxm2_data_traits<BOXM2_VIS_SCORE>::prefix());
-          bocl_mem* vis = opencl_cache->get_data_new<BOXM2_VIS_SCORE>(blk_iter->first, (normals->num_bytes()/normalsTypeSize)*visTypeSize, false);
-          transfer_time += (float) transfer.all();
-
-          local_threads[0] = 128;
-          local_threads[1] = 1;
-          global_threads[0] = RoundUp((normals->num_bytes()/normalsTypeSize), local_threads[0]);
-          global_threads[1]=1;
-
-          kern->set_arg( blk_info );
-          kern->set_arg( dodecahedron_dir_lookup.ptr() );
-          kern->set_arg( normals );
-          kern->set_arg( vis );
-          kern->set_arg( vis_sphere);
-
-          //execute kernel
-          kern->execute(queue, 2, local_threads, global_threads);
-          int status = clFinish(queue);
-          if(!check_val(status, MEM_FAILURE, "DECIDE NORMAL DIR EXECUTE FAILED: " + error_to_string(status)))
-          {
-            vcl_cerr << "Quitting" << vcl_endl;
-            return false;
-          }          gpu_time += kern->exec_time();
-
-          //read normals and vis from gpu
-          normals->read_to_buffer(queue);
-          vis->read_to_buffer(queue);
-          status = clFinish(queue);
-          if(!check_val(status, MEM_FAILURE, "READ NORMALS FAILED: " + error_to_string(status)))
-          {
-            vcl_cerr << "Quitting" << vcl_endl;
-            return false;
+            
+            //read from gpu
+            vis_sphere->read_to_buffer(queue);
+            int status = clFinish(queue);
+            if(! check_val(status, MEM_FAILURE, "READ VIS_SPHERE FAILED: " + error_to_string(status)))
+            {
+              vcl_cerr << "Quitting" << vcl_endl;
+              return false;
+            }
+            
+            opencl_cache->clear_cache();
           }
 
-          //clear render kernel args so it can reset em on next execution
-          kern->clear_args();
-      }
+        }
+        else if (i == DECIDE_NORMAL) {
+          
+          // bit lookup buffer
+          cl_uchar lookup_arr[256];
+          boxm2_ocl_util::set_bit_lookup(lookup_arr);
+          bocl_mem_sptr lookup=new bocl_mem(device->context(), lookup_arr, sizeof(cl_uchar)*256, "bit lookup buffer");
+          lookup->create_buffer(CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR);
+          
+          // dodecahedron directions lookup buffer
+          cl_float4 dodecahedron_dir[12];
+          boxm2_ocl_util::set_dodecahedron_dir_lookup(dodecahedron_dir);
+          bocl_mem_sptr dodecahedron_dir_lookup=new bocl_mem(device->context(), dodecahedron_dir, sizeof(cl_float4)*12, "dodecahedron directions lookup buffer");
+          dodecahedron_dir_lookup->create_buffer(CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR);
+          
+  
+          cl_uint datasize[1];
+          bocl_mem_sptr datasize_mem =new bocl_mem(device->context(), datasize, sizeof(cl_uint), "data buffer size");
+          datasize_mem->create_buffer(CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR);
 
-        //shallow remove from ocl cache unnecessary items from ocl cache.
-        opencl_cache->shallow_remove_data(id,boxm2_data_traits<BOXM2_VIS_SPHERE>::prefix());
-        opencl_cache->shallow_remove_data(id,boxm2_data_traits<BOXM2_VIS_SCORE>::prefix());
+                    
+          for (blk_iter = blocks.begin(); blk_iter != blocks.end(); ++blk_iter)
+          {
+            boxm2_block_id id = blk_iter->first;
+            vcl_cout << "Processing block: " << id << vcl_endl;
+            
+            //get kernel
+            bocl_kernel* kern =  kernels[identifier][i];
+                       
+            //load normals
+            bocl_mem* normals = opencl_cache->get_data<BOXM2_NORMAL>(blk_iter->first,0,false);
+            vcl_size_t normalsTypeSize = boxm2_data_info::datasize(boxm2_data_traits<BOXM2_NORMAL>::prefix());
+            
+            //load block info
+            datasize[0] = (unsigned)(normals->num_bytes()/normalsTypeSize);
+            datasize_mem->write_to_buffer((queue));
+            
+//            transfer_time += (float) transfer.all();
+//          
+//            transfer.mark();
 
-    }
+            //load tree
+            boxm2_block_metadata mdata = blk_iter->second;
+            vul_timer transfer;
+            bocl_mem* blk       = opencl_cache->get_block(blk_iter->first);
+            bocl_mem* blk_info  = opencl_cache->loaded_block_info();
+            boxm2_scene_info* info_buffer = (boxm2_scene_info*) blk_info->cpu_buffer();
+            info_buffer->data_buffer_length = (int) (normals->num_bytes()/normalsTypeSize);
+            blk_info->write_to_buffer((queue));
+
+            //load visibilities
+            bocl_mem* vis_sphere = opencl_cache->get_data<BOXM2_VIS_SPHERE>(blk_iter->first,0,false);
+
+            //array to store final visibility score of a point
+            vcl_size_t visTypeSize = boxm2_data_info::datasize(boxm2_data_traits<BOXM2_VIS_SCORE>::prefix());
+            bocl_mem* vis = opencl_cache->get_data_new<BOXM2_VIS_SCORE>(blk_iter->first, (normals->num_bytes()/normalsTypeSize)*visTypeSize, false);
+            transfer_time += (float) transfer.all();
+
+            local_threads[0] = 128;
+            local_threads[1] = 1;
+            global_threads[0] = RoundUp((normals->num_bytes()/normalsTypeSize), local_threads[0]);
+            global_threads[1]=1;
+
+            kern->set_arg( blk_info );
+            kern->set_arg( dodecahedron_dir_lookup.ptr() );
+            kern->set_arg( normals );
+            kern->set_arg( vis );
+            kern->set_arg( vis_sphere);
+
+            //execute kernel
+            binCache = opencl_cache.ptr()->bytes_in_cache();
+            vcl_cout<<"Decide Normal:  MBs in cache: "<<binCache/(1024.0*1024.0)<<vcl_endl;
+            
+            kern->execute(queue, 2, local_threads, global_threads);
+            int status = clFinish(queue);
+            if(!check_val(status, MEM_FAILURE, "DECIDE NORMAL DIR EXECUTE FAILED: " + error_to_string(status)))
+            {
+              vcl_cerr << "Quitting" << vcl_endl;
+              return false;
+            }          gpu_time += kern->exec_time();
+
+            //read normals and vis from gpu
+            normals->read_to_buffer(queue);
+            vis->read_to_buffer(queue);
+            status = clFinish(queue);
+            if(!check_val(status, MEM_FAILURE, "READ NORMALS FAILED: " + error_to_string(status)))
+            {
+              vcl_cerr << "Quitting" << vcl_endl;
+              return false;
+            }
+
+            //clear render kernel args so it can reset em on next execution
+            kern->clear_args();
+            opencl_cache->clear_cache();
+          }
+          
+        }
+
   }
-
-  vcl_cout<<"Gpu time "<<gpu_time<<" transfer time "<<transfer_time<<vcl_endl;
+//  vcl_cout<<"Gpu time "<<gpu_time<<" transfer time "<<transfer_time<<vcl_endl;
   clReleaseCommandQueue(queue);
   return true;
 }

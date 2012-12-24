@@ -163,7 +163,7 @@ bool bocl_mem::write_to_gpu_mem(const cl_command_queue& cmd_queue, void* buff, v
                                 buff,
                                 0,                //cl_uint num_events_in_wait_list
                                 0,
-                                &ceEvent_);
+                                NULL);
   if (!check_val(status,MEM_FAILURE,"clEnqueueWriteBuffer failed: " + this->id_ + error_to_string(status)))
     return MEM_FAILURE;
   return MEM_SUCCESS;
@@ -181,7 +181,7 @@ bool bocl_mem::read_from_gpu_mem(const cl_command_queue& cmd_queue, void* buff, 
                               buff,
                               0,
                               NULL,
-                              &ceEvent_);
+                              NULL);
   if (!check_val(status,MEM_FAILURE,"clEnqueueReadBuffer failed: " + this->id_ + error_to_string(status)))
     return MEM_FAILURE;
   return MEM_SUCCESS;
