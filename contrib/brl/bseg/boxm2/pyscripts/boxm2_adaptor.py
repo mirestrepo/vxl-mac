@@ -1,7 +1,7 @@
 from boxm2_register import boxm2_batch, dbvalue; 
 import os
 
-boxm2_batch.verbose();
+boxm2_batch.not_verbose();
 
 #############################################################################
 # PROVIDES higher level python functions to make boxm2_batch 

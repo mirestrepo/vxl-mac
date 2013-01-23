@@ -7,7 +7,7 @@ from os.path import basename, splitext
 import sys
 
 
-boxm2_batch.verbose();
+boxm2_batch.not_verbose();
 
 #############################################################################
 # boxm2_scene_adaptor class offers super simple model manipulation syntax
@@ -265,6 +265,10 @@ class boxm2_scene_adaptor(object):
   # Apply multiple filters to  scene    
   def kernel_vector_filter(self, filters ) :
     return apply_filters(self.scene, self.opencl_cache, self.device, filters);
+  
+  # Apply a single filter to  scene
+  def kernel_filter(self, filter ) :
+    return apply_filter(self.scene, self.opencl_cache, self.device, filter);
    
   # Interpolate normal from various responses 
   def interpolate_normals(self, filters) :

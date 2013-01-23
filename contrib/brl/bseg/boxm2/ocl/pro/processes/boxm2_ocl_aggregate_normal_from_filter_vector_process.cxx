@@ -139,23 +139,7 @@ bool boxm2_ocl_aggregate_normal_from_filter_vector_process(bprb_func_process& pr
     directions[count+0] = dir[0];
     directions[count+1] = dir[1];
     directions[count+2] = dir[2];
-    directions[count+3] = 0.0f;    
- 
-#if 0
-#ifdef CL_ALIGNED
-    directions[k].s0 = dir[0];
-    directions[k].s1 = dir[1];
-    directions[k].s2 = dir[2];
-    directions[k].s3 = 0.0f;
-#else// assuming cl_float4 is a typedef for float[4]
-    float* d = static_cast<float*>(directions[k]);
-    d[0] = dir[0];
-    d[1] = dir[1];
-    d[2] = dir[2];
-    d[3] = 0.0f;   
-#endif 
-#endif
-    
+    directions[count+3] = 0.0f;      
   }
   bocl_mem_sptr directions_buffer=new bocl_mem(device->context(), directions, sizeof(cl_float4)*num_filters, "directions buffer");
   directions_buffer->create_buffer(CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR);
@@ -213,15 +197,18 @@ bool boxm2_ocl_aggregate_normal_from_filter_vector_process(bprb_func_process& pr
     //execute kernel
     kern->execute(queue, 2, local_threads, global_threads);
     int status = clFinish(queue);
-    check_val(status, MEM_FAILURE, "AGGREGATE NORMAL EXECUTE FAILED: " + error_to_string(status));
+    if(!check_val(status, MEM_FAILURE, "AGGREGATE NORMAL EXECUTE FAILED: " + error_to_string(status)))
+      return false;
     gpu_time += kern->exec_time();
 
     //clear render kernel args so it can reset em on next execution
     kern->clear_args();
 
     status = clFinish(queue);    
-    check_val(status, MEM_FAILURE, "READ NORMALS FAILED: " + error_to_string(status));
+    if(!check_val(status, MEM_FAILURE, "READ NORMALS FAILED: " + error_to_string(status)))
+      return false;
    
+    
     //read normals from gpu
     normals->read_to_buffer(queue);
     

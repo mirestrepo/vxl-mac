@@ -35,7 +35,7 @@ boxm2_convert_nvm::boxm2_convert_nvm(vcl_string nvm_file, vcl_string img_dir)
   // verify image dir
   if (!vul_file::is_directory(img_dir.c_str()))
   {
-    vcl_cout<<"boxm2_convert_nvm::Image directory does not exist"<<vcl_endl;
+    vcl_cout<<"boxm2_convert_nvm:: Image directory ( " << img_dir << "does not exist"<<vcl_endl;
     return;
   }
   vidl_image_list_istream imgstream(img_dir+"/*");

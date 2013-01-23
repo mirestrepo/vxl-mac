@@ -3,6 +3,9 @@
 // \file
 
 //: scene/device constructor
+
+#define DEBUG
+
 boxm2_opencl_cache::boxm2_opencl_cache(boxm2_scene_sptr scene,
                                        bocl_device_sptr device,
                                        unsigned int maxBlocks)

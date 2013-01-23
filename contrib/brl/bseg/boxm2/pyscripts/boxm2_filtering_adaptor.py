@@ -29,7 +29,34 @@ def create_kernel_vector(factory_name, dir_type, dim_x, dim_y, dim_z, supp_x, su
     filters = dbvalue(id, type);
 
     return filters;
+
+#********************************************************************
+#  Create a Taylor Filter
+#********************************************************************
+def create_taylor_kernel(kernel_path):
+  print"Creating Taylor Kernel: " + kernel_path ;
+  boxm2_batch.init_process("bvplLoadTaylorKernelProcess");
+  boxm2_batch.set_input_string(0,kernel_path);
+  boxm2_batch.run_process();
+  (id, type) = boxm2_batch.commit_output(0);
+  taylor_kernel = dbvalue(id, type);
+  return taylor_kernel;
     
+#********************************************************************
+#  Apply a single filters to a boxm2_scene
+#********************************************************************
+def apply_filter(scene, cache, device, filter) :
+  if cache.type == "boxm2_opencl_cache_sptr":
+    print("Filtering Scene");
+    boxm2_batch.init_process("boxm2_ocl_kernel_filter_process");
+    boxm2_batch.set_input_from_db(0,device);
+    boxm2_batch.set_input_from_db(1,scene);
+    boxm2_batch.set_input_from_db(2,cache);
+    boxm2_batch.set_input_from_db(3,filter);
+    return boxm2_batch.run_process();
+  else :
+    print "ERROR: Cache type not recognized: ", cache.type;
+    return False;
     
 #********************************************************************
 #  Apply a vector of filters to a boxm2_scene

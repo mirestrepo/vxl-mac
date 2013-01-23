@@ -57,6 +57,10 @@ bool boxm2_ocl_kernel_filter_process_globals::process(bocl_device_sptr device, b
     kernels[identifier]=filter_kernel;
   }
 
+  //cache size sanity check
+  long binCache = opencl_cache.ptr()->bytes_in_cache();
+  vcl_cout<<"Filtering: Start MBs in cache: "<<binCache/(1024.0*1024.0)<<vcl_endl;
+
   // bit lookup buffer
   cl_uchar lookup_arr[256];
   boxm2_ocl_util::set_bit_lookup(lookup_arr);
@@ -92,8 +96,10 @@ bool boxm2_ocl_kernel_filter_process_globals::process(bocl_device_sptr device, b
     f_c[3] = w;
 #endif // CL_ALIGNED
   }
-  bocl_mem_sptr filter_buffer=new bocl_mem(device->context(), filter_coeff, sizeof(cl_float4)*filter->float_kernel_.size(), "filter coefficient buffer");
-  filter_buffer->create_buffer(CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR);
+
+  bocl_mem * filter_buffer=new bocl_mem(device->context(), filter_coeff, sizeof(cl_float4)*filter->float_kernel_.size(), "filter coefficient buffer");
+  filter_buffer->create_buffer(CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR);
+
 
   unsigned int filter_size[1];
   filter_size[0]=filter->float_kernel_.size();
@@ -122,6 +128,8 @@ bool boxm2_ocl_kernel_filter_process_globals::process(bocl_device_sptr device, b
 
     //set up output_data
     vcl_stringstream filter_ident; filter_ident << filter->name() << '_' << filter->id();
+    vcl_cout<<"Computing Filter: " << filter_ident.str() << " of size: " << filter->float_kernel_.size() <<vcl_endl;
+//    filter->print();
     bocl_mem* filter_response = opencl_cache->get_data_new(id, boxm2_data_traits<BOXM2_FLOAT>::prefix(filter_ident.str()), dataSize, false);
 
     //grab the block out of the cache as well
@@ -134,12 +142,15 @@ bool boxm2_ocl_kernel_filter_process_globals::process(bocl_device_sptr device, b
                               RoundUp(data.sub_block_num_.y(), lThreads[1]),
                               RoundUp(data.sub_block_num_.z(), lThreads[2]) };
 
+		binCache = opencl_cache.ptr()->bytes_in_cache();
+		vcl_cout<<"Filtering: Ready to execute MBs in cache: "<<binCache/(1024.0*1024.0)<<vcl_endl;
+		
     //make it a reference so the destructor isn't called at the end...
     kern->set_arg( blk_info );
     kern->set_arg( blk );
     kern->set_arg( data_in );
     kern->set_arg( filter_response );
-    kern->set_arg( filter_buffer.ptr() );
+    kern->set_arg( filter_buffer );
     kern->set_arg( filter_size_buffer.ptr() );
     kern->set_arg( lookup.ptr() );
     kern->set_arg( centerX.ptr() );
@@ -166,9 +177,14 @@ bool boxm2_ocl_kernel_filter_process_globals::process(bocl_device_sptr device, b
       return false;
 
     //shallow remove from ocl cache unnecessary items from ocl cache.
+	  binCache = opencl_cache.ptr()->bytes_in_cache();
+    vcl_cout<<"Filtering: After execute MBs in cache: "<<binCache/(1024.0*1024.0)<<vcl_endl;
     opencl_cache->shallow_remove_data(id,boxm2_data_traits<BOXM2_FLOAT>::prefix(filter_ident.str()));
+    opencl_cache->shallow_remove_data(id,boxm2_data_traits<BOXM2_ALPHA>::prefix());
+
   }  //end block iter for
   delete [] filter_coeff;
+  delete filter_buffer;
 
   vcl_cout<<"Scene kernel filter time: "<< gpu_time <<" ms"<<vcl_endl;
 
