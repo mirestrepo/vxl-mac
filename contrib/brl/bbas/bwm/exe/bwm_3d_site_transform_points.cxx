@@ -156,7 +156,7 @@ int main(int argc, char** argv)
   vul_arg<vcl_string> pts1_path ("-pts1_path","file to save the sceond points as .ply", "");
 
 
-  if (argc < 9) {
+  if (argc < 1) {
     vcl_cout << "usage: bwm_3d_site_transform -corrs <corr file> -in_point_dir <dir> -out_point_dir <dir> -transform_path <tfrom path>\n";
     return -1;
   }
@@ -264,8 +264,8 @@ int main(int argc, char** argv)
   }
   else
   {
-    vcl_cout<<"Input path does not exist"<<vcl_endl;
-    return -1;
+    vcl_cout<<"Warning: Input path does not exist"<<vcl_endl;
+    return 0;
   }
   
   return 0;

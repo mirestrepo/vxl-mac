@@ -43,7 +43,7 @@ void bvpl_taylor_basis_factory::create_canonical()
     float weight;
     ifs >> this_loc;
     ifs >> weight;
-    canonical_kernel_.push_back(vcl_pair<point_3d,dispatch>(this_loc, dispatch(weight)));
+    canonical_kernel_.push_back(vcl_pair<point_3d,dispatch>(this_loc, dispatch(1000*weight)));
   }
 
   //set the current kernel
